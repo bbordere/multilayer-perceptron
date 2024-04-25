@@ -22,39 +22,62 @@ def init_weights(
             return np.random.randn(input_size, output_size)
 
 
-class Layer:
-    def __init__(
-        self,
-        input_size: int,
-        output_size: int,
-        activation: str = "sigmoid",
-        weights_init: str = "heUniform",
-    ) -> None:
+class AbstractLayer:
+    def __init__(self, input_size: int, output_size: int) -> None:
         self.input_size = input_size
         self.output_size = output_size
-        self.w = init_weights(output_size, input_size, weights_init)
-        self.b = init_weights(output_size, 1, "zeros")
-        self.activation_name = activation
-        self.act_func, self.act_func_prime = get_activation(self.activation_name)
+        self.input = None
 
-    def __str__(self) -> str:
-        return f"Layer: shape={self.w.shape[1], self.w.shape[0]}, activation={self.activation_name}"
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        raise NotImplementedError
 
-    def __repr__(self) -> str:
-        return str(self)
+    def backward(self, out_grad: np.ndarray) -> np.ndarray:
+        raise NotImplementedError
+
+
+class DenseLayer(AbstractLayer):
+    def __init__(
+        self, input_size: int, output_size: int, weights_init: str = "heUniform"
+    ) -> None:
+        super().__init__(input_size, output_size)
+        self.w = init_weights(input_size, output_size, weights_init)
+        self.b = np.zeros(output_size)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         self.input = x
-        z = np.dot(self.w, x) + self.b
-        self.output = self.act_func(z)
+        return np.dot(x, self.w) + self.b
+
+    def backward(self, out_grad: np.ndarray) -> np.ndarray:
+        input_grad = np.dot(out_grad, self.w.T)
+
+        weights_grad = np.dot(self.input.T, out_grad)
+        bias_grad = 1 / len(out_grad) * np.sum(out_grad, axis=0)
+        assert weights_grad.shape == self.w.shape
+        assert bias_grad.shape == self.b.shape
+
+        self.w = self.w - 0.005 * weights_grad
+        self.b = self.b - 0.005 * bias_grad
+
+        return input_grad
+
+
+class ActivationLayer:
+    def __init__(self, activation: str) -> None:
+        self.act_func, self.act_func_prime = get_activation(activation)
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        self.input = x
+        return self.act_func(x)
+
+    def backward(self, out_grad: np.ndarray) -> np.ndarray:
+        return out_grad * self.act_func_prime(self.input)
+
+
+class SoftmaxLayer(AbstractLayer):
+    def __init__(self, input_size: int, output_size: int) -> None:
+        super().__init__(input_size, output_size)
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        input_expo = np.exp(x)
+        self.output = input_expo / np.sum(input_expo)
         return self.output
-
-    def backward(self, gradient: np.ndarray) -> np.ndarray:
-        pass
-
-
-if __name__ == "__main__":
-    l = Layer(10, 10)
-    data = np.linspace(-100, 100, 10)
-    print(l.forward(data))
-    # print(l.backward())
