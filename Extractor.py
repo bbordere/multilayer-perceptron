@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import numpy as np
 
 
 class Extractor:

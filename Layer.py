@@ -55,8 +55,8 @@ class DenseLayer(AbstractLayer):
         assert weights_grad.shape == self.w.shape
         assert bias_grad.shape == self.b.shape
 
-        self.w = self.w - 0.005 * weights_grad
-        self.b = self.b - 0.005 * bias_grad
+        self.w = self.w - 0.1 * weights_grad
+        self.b = self.b - 0.1 * bias_grad
 
         return input_grad
 

@@ -26,37 +26,20 @@ x_test, y_test = x[test_part:], y[test_part:]
 y_train_one = one_hot(y_train, 2)
 
 res = []
+np.random.seed(42)
 
-for i in range(25):
-    net = NeuralNetwork(
-        [
-            DenseLayer(x_train.shape[1], 2500),
-            ActivationLayer("relu"),
-            DenseLayer(2500, 1000),
-            ActivationLayer("sigmoid"),
-            DenseLayer(1000, 1000),
-            ActivationLayer("relu"),
-            DenseLayer(1000, 2),
-            ActivationLayer("softmax"),
-        ]
-    )
-    predict = []
-    with alive_bar(1000) as bar:
-        for epoch in range(1000):
-            predict = net.forward(x_train)
-            net.backward(predict, y_train_one)
-            bar()
-
-    pred_test = net.forward(x_test)
-    labels_pred = []
-    for p in pred_test:
-        labels_pred.append(int(p[0] < p[1]))
-
-    good = 0
-    for i in range(len(labels_pred)):
-        good += labels_pred[i] == y_test[i]
-
-    res.append(good / len(labels_pred))
-
-print(np.max(res))
-print(np.mean(res))
+net = NeuralNetwork(
+    [
+        DenseLayer(x_train.shape[1], 25),
+        ActivationLayer("relu"),
+        DenseLayer(25, 30),
+        ActivationLayer("relu"),
+        DenseLayer(30, 2),
+        ActivationLayer("sigmoid"),
+        DenseLayer(2, 2),
+        ActivationLayer("softmax"),
+    ]
+)
+net.fit(x_train, y_train_one, 200)
+net.predict(x_test)
+print(net.score(x_test, y_test))
