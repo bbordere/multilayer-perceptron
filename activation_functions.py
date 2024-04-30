@@ -30,6 +30,24 @@ def d_softmax(x: np.ndarray) -> np.ndarray:
     return z * (1 - z)
 
 
+def tanh(x: np.ndarray) -> np.ndarray:
+    return np.tanh(x)
+
+
+def d_tanh(x: np.ndarray) -> np.ndarray:
+    return 1 - (tanh(x) ** 2)
+
+
+def elu(x: np.ndarray) -> np.ndarray:
+    # return x if (x > 0).astype(x.dtype) else np.exp(x) - 1
+    return np.where(x > 0, x, np.exp(x) - 1)
+
+
+def d_elu(x: np.ndarray) -> np.ndarray:
+    # return 1 if (x > 0).astype(x.dtype) else np.exp(x)
+    return np.where(x > 0, 1, np.exp(x))
+
+
 def get_activation(name: str) -> tuple:
     match name:
         case "sigmoid":
@@ -38,5 +56,9 @@ def get_activation(name: str) -> tuple:
             return (softmax, d_softmax)
         case "relu":
             return (relu, d_relu)
+        case "tanh":
+            return (tanh, d_tanh)
+        case "elu":
+            return (elu, d_elu)
         case _:
             return (sigmoid, d_sigmoid)
