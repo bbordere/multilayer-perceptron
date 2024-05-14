@@ -31,7 +31,7 @@ class AbstractLayer:
     def forward(self, x: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
-    def backward(self, out_grad: np.ndarray) -> np.ndarray:
+    def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
         raise NotImplementedError
 
 
@@ -47,7 +47,7 @@ class DenseLayer(AbstractLayer):
         self.input = x
         return np.dot(x, self.w) + self.b
 
-    def backward(self, out_grad: np.ndarray) -> np.ndarray:
+    def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
         input_grad = np.dot(out_grad, self.w.T)
 
         weights_grad = np.dot(self.input.T, out_grad)
@@ -55,8 +55,8 @@ class DenseLayer(AbstractLayer):
         assert weights_grad.shape == self.w.shape
         assert bias_grad.shape == self.b.shape
 
-        self.w = self.w - 0.1 * weights_grad
-        self.b = self.b - 0.1 * bias_grad
+        self.w = self.w - lr * weights_grad
+        self.b = self.b - lr * bias_grad
 
         return input_grad
 
@@ -69,7 +69,7 @@ class ActivationLayer:
         self.input = x
         return self.act_func(x)
 
-    def backward(self, out_grad: np.ndarray) -> np.ndarray:
+    def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
         return out_grad * self.act_func_prime(self.input)
 
 

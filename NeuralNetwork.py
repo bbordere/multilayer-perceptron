@@ -1,6 +1,7 @@
 from Layer import *
 import numpy as np
 from alive_progress import alive_bar
+from utils import *
 
 
 class NeuralNetwork:
@@ -25,14 +26,27 @@ class NeuralNetwork:
     def backward(self, predict: np.ndarray, target: np.ndarray) -> None:
         grad = predict - target
         for l in reversed(self.layers):
-            grad = l.backward(grad)
+            grad = l.backward(grad, self.lr)
 
-    def fit(self, x: np.ndarray, y: np.ndarray, epochs=1000) -> None:
+    def fit(
+        self,
+        train: np.ndarray,
+        test: np.ndarray,
+        epochs: int = 1000,
+        lr: float = 0.1,
+        batch_size=64,
+    ) -> None:
         predict = []
+        self.lr = lr
+        x, y = train
+        y = one_hot(y, 2)
         with alive_bar(epochs) as bar:
-            for epoch in range(epochs):
-                predict = self.forward(x)
-                self.backward(predict, y)
+            for _ in range(epochs):
+                for batch in get_batches((x, y), batch_size):
+                    X, Y = batch
+                    predict = self.forward(X)
+                    print(BCE(Y, predict).mean())
+                    self.backward(predict, Y)
                 bar()
 
     def predict(self, x: np.ndarray) -> np.array:
@@ -53,12 +67,6 @@ def BCE(y_true, y_pred):
     output = np.clip(output, 1e-7, 1.0 - 1e-7)
     output = -target * np.log(output) - (1.0 - target) * np.log(1.0 - output)
     return np.mean(output, axis=-1)
-
-
-# y_pred = np.clip(y_pred, 1e-7, 1 - 1e-7)
-# term_0 = (1 - y_true) * np.log(1 - y_pred + 1e-7)
-# term_1 = y_true * np.log(y_pred + 1e-7)
-# return -np.mean(term_0 + term_1, axis=0)
 
 
 if __name__ == "__main__":
