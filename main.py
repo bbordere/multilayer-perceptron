@@ -3,19 +3,22 @@ from Layer import *
 import numpy as np
 from Extractor import Extractor
 
-extractor = Extractor("data.csv")
+extractor = Extractor("data.csv", 1)
 extractor.keep_range_columns((1, 32))
 x, y = extractor.get_data_training("diagnosis", True)
 
+PERCENTAGE = 60
 
-train_part = (len(x) // 100) * 80
+train_part = int((PERCENTAGE / 100) * len(x))
 test_part = len(x) - train_part
+
+# print(train_part, test_part)
 
 
 x_train, y_train = x[:train_part], y[:train_part]
 x_test, y_test = x[test_part:], y[test_part:]
 
-# np.random.seed(42)
+np.random.seed(42)
 
 net = NeuralNetwork(
     [
@@ -29,6 +32,30 @@ net = NeuralNetwork(
         ActivationLayer("softmax"),
     ]
 )
+# net = NeuralNetwork(
+#     [
+#         DenseLayer(x_train.shape[1], 10),
+#         ActivationLayer("relu"),
+#         DenseLayer(10, 20),
+#         ActivationLayer("sigmoid"),
+#         DenseLayer(20, 20),
+#         ActivationLayer("sigmoid"),
+#         DenseLayer(20, 20),
+#         ActivationLayer("sigmoid"),
+#         DenseLayer(20, 2),
+#         ActivationLayer("softmax"),
+#         DenseLayer(2, 2),
+#     ]
+# )
 
-net.fit((x_train, y_train), (x_test, y_test), epochs=8, lr=0.1, batch_size=1)
+print(len(x_train))
+
+net.fit(
+    (x_train, y_train),
+    (x_test, y_test),
+    epochs=100,
+    lr=0.01,
+    batch_size=64,
+)
 print(net.score(x_test, y_test))
+net.plot_metrics()

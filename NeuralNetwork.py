@@ -2,11 +2,20 @@ from Layer import *
 import numpy as np
 from alive_progress import alive_bar
 from utils import *
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 
 class NeuralNetwork:
     def __init__(self, layers: list[AbstractLayer]) -> None:
         self.layers = layers
+        self.metrics = {
+            "val_loss": [],
+            "train_loss": [],
+            "train_acc": [],
+            "val_acc": [],
+        }
 
     def __str__(self) -> str:
         res = "Network:\n"
@@ -28,6 +37,14 @@ class NeuralNetwork:
         for l in reversed(self.layers):
             grad = l.backward(grad, self.lr)
 
+    def compute_metrics(self, x_train, y_train, x_test, y_test):
+        train_pred = self.predict(x_train)
+        test_pred = self.predict(x_test)
+        self.metrics["train_loss"].append(BCE(y_train, train_pred).mean())
+        self.metrics["val_loss"].append(BCE(y_test, test_pred).mean())
+        self.metrics["train_acc"].append(sum(train_pred == y_train) / len(y_train))
+        self.metrics["val_acc"].append(sum(test_pred == y_test) / len(y_test))
+
     def fit(
         self,
         train: np.ndarray,
@@ -38,16 +55,22 @@ class NeuralNetwork:
     ) -> None:
         predict = []
         self.lr = lr
-        x, y = train
-        y = one_hot(y, 2)
+        self.metrics["epoch"] = range(0, epochs + 1)
+        x_train, y_train = train
+        x_test, y_test = test
+        y_train = one_hot(y_train, 2)
+        self.compute_metrics(train[0], train[1], x_test, y_test)
         with alive_bar(epochs) as bar:
             for _ in range(epochs):
-                for batch in get_batches((x, y), batch_size):
+                for batch in get_batches((x_train, y_train), batch_size):
                     X, Y = batch
                     predict = self.forward(X)
-                    print(BCE(Y, predict).mean())
                     self.backward(predict, Y)
                 bar()
+                self.compute_metrics(train[0], train[1], x_test, y_test)
+                # print(
+                #     f"loss: {self.metrics['train_loss'][-1]} - val_loss: {self.metrics['val_loss'][-1]}",
+                # )
 
     def predict(self, x: np.ndarray) -> np.array:
         raw_predict = self.forward(x)
@@ -55,39 +78,41 @@ class NeuralNetwork:
 
     def score(self, x: np.ndarray, y: np.ndarray) -> float:
         predict = self.predict(x)
-        print(BCE(y, predict))
         return sum(predict == y) / len(y)
+
+    def plot_metrics(self):
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        fig.suptitle("Learning Curves")
+        data = pd.DataFrame.from_dict(self.metrics)
+        ax1.set_yticks(np.arange(0, 50, 0.5))
+        ax2.set_yticks(np.arange(0, 1, 0.04))
+
+        sns.lineplot(
+            x="epoch", y="train_loss", data=data, ax=ax1, label="Training loss"
+        )
+        sns.lineplot(
+            x="epoch", y="val_loss", data=data, ax=ax1, label="Validation loss"
+        )
+        sns.lineplot(
+            x="epoch", y="train_acc", data=data, ax=ax2, label="Training accuracy"
+        )
+        sns.lineplot(
+            x="epoch", y="val_acc", data=data, ax=ax2, label="Validation accuracy"
+        )
+        ax1.set_xlabel("Epoch")
+        ax1.set_ylabel("Loss")
+        ax2.set_xlabel("Epoch")
+        ax2.set_ylabel("Accuracy")
+        plt.show()
 
 
 def BCE(y_true, y_pred):
-
     target = y_true
     output = y_pred
-
     output = np.clip(output, 1e-7, 1.0 - 1e-7)
     output = -target * np.log(output) - (1.0 - target) * np.log(1.0 - output)
     return np.mean(output, axis=-1)
 
 
 if __name__ == "__main__":
-
-    x = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    y = np.array([[1, 0], [0, 1], [0, 1], [1, 0]])
-    net = NeuralNetwork(
-        [
-            DenseLayer(2, 50),
-            ActivationLayer("sigmoid"),
-            DenseLayer(50, 20),
-            ActivationLayer("sigmoid"),
-            DenseLayer(20, 2),
-            ActivationLayer("softmax"),
-        ]
-    )
-    predict = []
-    with alive_bar(200) as bar:
-        for epoch in range(200):
-            predict = net.forward(x)
-            print(BCE(y, predict))
-            net.backward(predict, y)
-            bar()
-    print(predict)
+    pass

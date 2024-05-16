@@ -48,10 +48,12 @@ class DenseLayer(AbstractLayer):
         return np.dot(x, self.w) + self.b
 
     def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
+        # print("HID GRAD", out_grad)
         input_grad = np.dot(out_grad, self.w.T)
 
         weights_grad = np.dot(self.input.T, out_grad)
         bias_grad = 1 / len(out_grad) * np.sum(out_grad, axis=0)
+        # bias_grad = np.sum(out_grad, axis=0)
         assert weights_grad.shape == self.w.shape
         assert bias_grad.shape == self.b.shape
 
@@ -70,6 +72,7 @@ class ActivationLayer:
         return self.act_func(x)
 
     def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
+        # print("LAST GRAD", out_grad)
         return out_grad * self.act_func_prime(self.input)
 
 

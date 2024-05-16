@@ -9,7 +9,7 @@ class Extractor:
     def __init__(self, csv_file, header=None):
         self.data = None
         try:
-            if header:
+            if header is None:
                 self.data = pd.read_csv(csv_file, header=header)
             else:
                 self.data = pd.read_csv(csv_file)
