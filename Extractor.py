@@ -2,6 +2,8 @@ import pandas as pd
 import sys
 import numpy as np
 
+pd.set_option("future.no_silent_downcasting", True)
+
 
 class Extractor:
     """General class for data extracting"""
@@ -58,7 +60,7 @@ class Extractor:
         return self.data
 
     def get_data_training(
-        self, label_name: str, need_facto: bool = False
+        self, label_name: str, need_facto: bool = False, replace_params: dict = None
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Get x, y for training purpose
 
@@ -75,6 +77,9 @@ class Extractor:
             y = pd.factorize(self.data[label_name])[0]
         else:
             y = self.data[label_name]
+        if replace_params:
+            y = y.replace(replace_params).to_numpy().astype(int)
+
         x = (x - x.mean()) / x.std()
         return x, y
 
