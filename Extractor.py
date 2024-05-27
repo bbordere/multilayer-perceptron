@@ -8,13 +8,13 @@ pd.set_option("future.no_silent_downcasting", True)
 class Extractor:
     """General class for data extracting"""
 
-    def __init__(self, csv_file, header=None):
+    def __init__(self, csv_file, header=None, names=None):
         self.data = None
         try:
             if header is None:
-                self.data = pd.read_csv(csv_file, header=header)
+                self.data = pd.read_csv(csv_file, header=header, names=names)
             else:
-                self.data = pd.read_csv(csv_file)
+                self.data = pd.read_csv(csv_file, names=names)
         except FileNotFoundError:
             sys.exit(f"File not found {csv_file}")
         except pd.errors.EmptyDataError:
@@ -59,7 +59,7 @@ class Extractor:
         self.data = self.data.drop(col, axis=1)
         return self.data
 
-    def get_data_training(
+    def get_data(
         self, label_name: str, need_facto: bool = False, replace_params: dict = None
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Get x, y for training purpose

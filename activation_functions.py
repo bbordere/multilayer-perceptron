@@ -26,8 +26,9 @@ def softmax(x: np.ndarray) -> np.ndarray:
 
 
 def d_softmax(x: np.ndarray) -> np.ndarray:
-    z = softmax(x)
-    return z * (1 - z)
+    # z = softmax(x)
+    # return z * (1 - z)
+    return x
 
 
 def tanh(x: np.ndarray) -> np.ndarray:

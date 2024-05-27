@@ -1,5 +1,6 @@
 import numpy as np
 from activation_functions import get_activation
+from Optimizer import *
 
 
 def init_weights(
@@ -47,18 +48,18 @@ class DenseLayer(AbstractLayer):
         self.input = x
         return np.dot(x, self.w) + self.b
 
-    def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
-        # print("HID GRAD", out_grad)
+    def backward(
+        self, out_grad: np.ndarray, lr: float, optimizer: Optimizer
+    ) -> np.ndarray:
         input_grad = np.dot(out_grad, self.w.T)
 
         weights_grad = np.dot(self.input.T, out_grad)
         bias_grad = 1 / len(out_grad) * np.sum(out_grad, axis=0)
-        # bias_grad = np.sum(out_grad, axis=0)
         assert weights_grad.shape == self.w.shape
         assert bias_grad.shape == self.b.shape
 
-        self.w = self.w - lr * weights_grad
-        self.b = self.b - lr * bias_grad
+        optimizer.optimize(self.w, weights_grad)
+        optimizer.optimize(self.b, bias_grad)
 
         return input_grad
 
@@ -71,16 +72,31 @@ class ActivationLayer:
         self.input = x
         return self.act_func(x)
 
-    def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
-        # print("LAST GRAD", out_grad)
+    def backward(
+        self, out_grad: np.ndarray, lr: float, optimizer: Optimizer
+    ) -> np.ndarray:
         return out_grad * self.act_func_prime(self.input)
 
 
-class SoftmaxLayer(AbstractLayer):
-    def __init__(self, input_size: int, output_size: int) -> None:
-        super().__init__(input_size, output_size)
+class SoftmaxLayer:
+    def forward(self, x):
+        e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+        return e_x / np.sum(e_x, axis=-1, keepdims=True)
 
-    def forward(self, x: np.ndarray) -> np.ndarray:
-        input_expo = np.exp(x)
-        self.output = input_expo / np.sum(input_expo)
-        return self.output
+    def backward(self, grad_output, lr: float, optimizer: Optimizer):
+        return grad_output
+
+
+class DropoutLayer:
+    def __init__(self, dropout_rate):
+        self.dropout_rate = dropout_rate
+        self.mask = None
+
+    def forward(self, inputs, training=True):
+        if training:
+            self.mask = np.random.binomial(1, 1 - self.dropout_rate, size=inputs.shape)
+            return inputs * self.mask / (1 - self.dropout_rate)
+        return inputs
+
+    def backward(self, out_grad: np.ndarray, lr: float, optimizer: Optimizer):
+        return out_grad * self.mask / (1 - self.dropout_rate)
