@@ -61,11 +61,9 @@ class NeuralNetwork:
         val_pred = self.predict(x_test)
 
         self.metrics["train_loss"].append(
-            sklearn.metrics.log_loss(one_hot(y_train, 2), self.forward(x_train))
+            BCE(one_hot(y_train, 2), self.forward(x_train))
         )
-        self.metrics["val_loss"].append(
-            sklearn.metrics.log_loss(one_hot(y_test, 2), self.forward(x_test))
-        )
+        self.metrics["val_loss"].append(BCE(one_hot(y_test, 2), self.forward(x_test)))
 
         self.metrics["train_acc"].append(sum(train_pred == y_train) / len(y_train))
         self.metrics["val_acc"].append(sum(val_pred == y_test) / len(y_test))
@@ -118,6 +116,7 @@ class NeuralNetwork:
         self.lr = lr
         self.optimizer = optimizer
         self.optimizer.lr = self.lr
+        self.copy = self.layers
 
         x_train, y_train = train
         x_test, y_test = test
@@ -138,7 +137,7 @@ class NeuralNetwork:
                     )
                 bar()
                 if early_stop and self.early_stop_check(
-                    metric="val_loss", eps=1e-5, limit=10
+                    metric="val_loss", eps=1e-4, limit=10
                 ):
                     print("Early Stoppping !")
                     self.layers = self.copy

@@ -51,8 +51,8 @@ class DenseLayer(AbstractLayer):
     def backward(
         self, out_grad: np.ndarray, lr: float, optimizer: Optimizer
     ) -> np.ndarray:
-        input_grad = np.dot(out_grad, self.w.T)
 
+        input_grad = np.dot(out_grad, self.w.T)
         weights_grad = np.dot(self.input.T, out_grad)
         bias_grad = 1 / len(out_grad) * np.sum(out_grad, axis=0)
         assert weights_grad.shape == self.w.shape

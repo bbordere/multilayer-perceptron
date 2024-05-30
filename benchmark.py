@@ -10,7 +10,7 @@ import copy
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-np.random.seed(4242)
+np.random.seed(42)
 
 
 def plots_optimizers(models: list[NeuralNetwork]) -> None:
@@ -46,9 +46,11 @@ def main() -> None:
     args = parser.parse_args()
 
     extractor = Extractor(args.train_path, header="")
+    extractor.keep_range_columns((1, 32))
     x_train, y_train = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
 
     extractor = Extractor(args.valid_path, header="")
+    extractor.keep_range_columns((1, 32))
     x_valid, y_valid = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
 
     x_train = x_train.values
@@ -74,7 +76,7 @@ def main() -> None:
 
     LR = 0.001
     BS = 32
-    EPOCHS = 200
+    EPOCHS = 500
 
     model1.fit(
         (x_train, y_train),
@@ -83,6 +85,7 @@ def main() -> None:
         lr=LR,
         batch_size=BS,
         verbose=False,
+        early_stop=False,
     )
 
     model2.fit(
@@ -93,6 +96,7 @@ def main() -> None:
         batch_size=BS,
         optimizer=SGDMOptimizer(),
         verbose=False,
+        early_stop=False,
     )
 
     model3.fit(
@@ -103,6 +107,7 @@ def main() -> None:
         batch_size=BS,
         optimizer=AdamOptimizer(),
         verbose=False,
+        early_stop=False,
     )
 
     model4.fit(
@@ -113,6 +118,7 @@ def main() -> None:
         batch_size=BS,
         optimizer=RMSPropOptimizer(),
         verbose=False,
+        early_stop=False,
     )
 
     print(

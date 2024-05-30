@@ -15,7 +15,7 @@ def get_batches(dataset, batch_size):
         yield X[batch_indices], Y[batch_indices]
 
 
-def BCE(y_true, y_pred, eps: float = 1e-15):
+def BCE(y_true, y_pred, eps: float = 1e-16):
     y_pred = np.clip(y_pred, eps, 1 - eps)
     log_loss = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
     return np.mean(log_loss)
