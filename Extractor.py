@@ -82,8 +82,3 @@ class Extractor:
 
         x = (x - x.mean()) / x.std()
         return x, y
-
-    def get_data_test(self) -> pd.DataFrame:
-        x = self.data
-        x = (x - x.mean()) / x.std()
-        return x

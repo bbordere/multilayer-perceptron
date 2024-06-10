@@ -79,7 +79,7 @@ class ActivationLayer:
 
 
 class SoftmaxLayer:
-    def forward(self, x):
+    def forward(self, x: np.ndarray):
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
         return e_x / np.sum(e_x, axis=-1, keepdims=True)
 
@@ -88,7 +88,7 @@ class SoftmaxLayer:
 
 
 class DropoutLayer:
-    def __init__(self, dropout_rate):
+    def __init__(self, dropout_rate: float):
         self.dropout_rate = dropout_rate
         self.mask = None
 

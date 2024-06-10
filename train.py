@@ -17,7 +17,6 @@ def main() -> None:
         epilog="Text at the bottom of help",
     )
     parser.add_argument("train_path", help="train dataset path", type=str)
-    parser.add_argument("valid_path", help="validation dataset path", type=str)
     parser.add_argument(
         "-np",
         "--noplot",
@@ -71,8 +70,10 @@ def main() -> None:
         lr=0.001,
         batch_size=20,
         optimizer=AdamOptimizer(),
+        early_stop=False,
         # optimizer=SGDMOptimizer(),
         # optimizer=RMSPropOptimizer(),
+        compute_all=not args.noplot,
     ),
 
     if not args.noplot:

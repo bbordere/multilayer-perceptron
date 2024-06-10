@@ -46,17 +46,45 @@ class NeuralNetwork:
         return str(self)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
+        """forward propagation of network
+
+        Args:
+            x (np.ndarray): data used to feedforward
+
+        Returns:
+            np.ndarray: output of network
+        """
         out = x
         for l in self.layers:
             out = l.forward(out)
         return out
 
     def backward(self, predict: np.ndarray, target: np.ndarray) -> None:
+        """back propagation of network
+
+        Args:
+            predict (np.ndarray): output of the network
+            target (np.ndarray): target values
+        """
         grad = predict - target
         for l in reversed(self.layers):
             grad = l.backward(grad, self.lr, self.optimizer)
 
-    def compute_metrics(self, x_train, y_train, x_test, y_test):
+    def compute_metrics(
+        self,
+        train: tuple[np.ndarray, np.ndarray],
+        test: tuple[np.ndarray, np.ndarray],
+        compute_all: bool = True,
+    ) -> None:
+        """compute trainings metrics for training and validation datasets
+
+        Args:
+            train (tuple[np.ndarray, np.ndarray]): training set
+            test (tuple[np.ndarray, np.ndarray]): validation set
+            compute_all (bool):
+        """
+        x_train, y_train = train
+        x_test, y_test = test
         train_pred = self.predict(x_train)
         val_pred = self.predict(x_test)
 
@@ -64,6 +92,9 @@ class NeuralNetwork:
             BCE(one_hot(y_train, 2), self.forward(x_train))
         )
         self.metrics["val_loss"].append(BCE(one_hot(y_test, 2), self.forward(x_test)))
+
+        if not compute_all:
+            return
 
         self.metrics["train_acc"].append(sum(train_pred == y_train) / len(y_train))
         self.metrics["val_acc"].append(sum(val_pred == y_test) / len(y_test))
@@ -93,6 +124,16 @@ class NeuralNetwork:
     def early_stop_check(
         self, metric: str = "val_loss", eps: float = 1e-3, limit: int = 10
     ) -> bool:
+        """early stop function
+
+        Args:
+            metric (str, optional): metric choosed to stop training. Defaults to "val_loss".
+            eps (float, optional): epsilon value for clipping. Defaults to 1e-3.
+            limit (int, optional): number of epoch. Defaults to 10.
+
+        Returns:
+            bool: early stopping status
+        """
         if self.metrics[metric][-1] < self.best_loss - eps:
             self.best_loss = self.metrics[metric][-1]
             self.early_counter = 0
@@ -111,7 +152,21 @@ class NeuralNetwork:
         early_stop: bool = True,
         optimizer: Optimizer = Optimizer(),
         verbose: bool = True,
+        compute_all: bool = True,
     ) -> None:
+        """fit the network
+
+        Args:
+            train (tuple[np.ndarray, np.ndarray]): tuple of training set
+            test (tuple[np.ndarray, np.ndarray]): tuple of validation set
+            epochs (int, optional): number of max epochs. Defaults to 1000.
+            lr (float, optional): learning rate. Defaults to 0.01.
+            batch_size (int, optional): size of minibatch to train. Defaults to 64.
+            early_stop (bool, optional): status of early stopping check to prevent overfitting. Defaults to True.
+            optimizer (Optimizer, optional): optimizer used for the training phase. Defaults to Optimizer().
+            verbose (bool, optional): enable printing metrics for each epoch. Defaults to True.
+            compute_all (bool, optional): enable all metrics computing. Defaults to True.
+        """
         predict = []
         self.lr = lr
         self.optimizer = optimizer
@@ -119,10 +174,9 @@ class NeuralNetwork:
         self.copy = self.layers
 
         x_train, y_train = train
-        x_test, y_test = test
         y_train = one_hot(y_train, 2)
 
-        self.compute_metrics(train[0], train[1], x_test, y_test)
+        self.compute_metrics(train, test, compute_all)
 
         with alive_bar(epochs) as bar:
             for epoch in range(epochs):
@@ -130,7 +184,7 @@ class NeuralNetwork:
                     X, Y = batch
                     predict = self.forward(X)
                     self.backward(predict, Y)
-                self.compute_metrics(train[0], train[1], x_test, y_test)
+                self.compute_metrics(train, test, compute_all)
                 if verbose:
                     print(
                         f"loss: {self.metrics['train_loss'][-1]:.4f} - val_loss: {self.metrics['val_loss'][-1]:.4f}",
@@ -145,19 +199,30 @@ class NeuralNetwork:
         self.metrics["epoch"] = range(0, epoch + 2)
 
     def save(self, name: str) -> None:
+        """save network to disk
+
+        Args:
+            name (str): name of model
+        """
         print(f"Saving model into 'models/{name}.joblib'...")
         with open(f"models/{name}.joblib", "wb") as f:
             joblib.dump(self, f)
 
-    def predict(self, x: np.ndarray) -> np.array:
+    def predict(self, x: np.ndarray) -> np.ndarray:
+        """get prediction using network
+
+        Args:
+            x (np.ndarray): data to predict
+
+        Returns:
+            np.ndarray: predictions
+        """
         raw_predict = self.forward(x)
         return np.argmax(raw_predict, axis=1)
 
-    def score(self, x: np.ndarray, y: np.ndarray) -> float:
-        predict = self.predict(x)
-        return sum(predict == y) / len(y)
+    def plot_metrics(self) -> None:
+        """plot all metrics"""
 
-    def plot_metrics(self):
         fig, axes = plt.subplots(2, 3)
 
         fig.suptitle("Learning Curves")
