@@ -7,8 +7,9 @@ from Extractor import Extractor
 def get_batches(dataset, batch_size):
     X, Y = dataset
     n_samples = X.shape[0]
-    indices = np.arange(n_samples)
-    np.random.shuffle(indices)
+    # indices = np.arange(n_samples)
+    # np.random.shuffle(indices)
+    indices = np.random.permutation(len(X))
     for start in range(0, n_samples, batch_size):
         end = min(start + batch_size, n_samples)
         batch_indices = indices[start:end]
@@ -40,3 +41,18 @@ def data_process(
     y_valid = y[limit:]
 
     return x_train, y_train, x_valid, y_valid
+
+
+def compute_cm(pred: np.ndarray, target: np.ndarray) -> dict:
+    res = {}
+    res["fp"] = np.sum((pred == 1) & (target == 0))
+    res["tp"] = np.sum((pred == 1) & (target == 1))
+
+    res["fn"] = np.sum((pred == 0) & (target == 1))
+    res["tn"] = np.sum((pred == 0) & (target == 0))
+
+    res["recall"] = res["tp"] / (res["tp"] + res["fn"])
+    res["precision"] = res["tp"] / (res["tp"] + res["fp"])
+    res["f1"] = 2 / ((1 / res["precision"]) + 1 / res["recall"])
+    res["fpr"] = res["fp"] / (res["fp"] + res["tn"])
+    return res

@@ -10,20 +10,40 @@ import utils
 
 
 def main() -> None:
-    net: NeuralNetwork = joblib.load("models/adam.joblib")
-    extractor = Extractor("data/data_test.csv", header=[])
+
+    parser = argparse.ArgumentParser(
+        prog="predict",
+        description="get predictions with trained model",
+        epilog="Text at the bottom of help",
+    )
+    parser.add_argument("path", help="dataset path", type=str)
+    parser.add_argument("model", help="trained model path", type=str)
+    parser.add_argument(
+        "-p",
+        "--plot",
+        help="plot the confusion matrix",
+        action="store_true",
+    )
+    args = parser.parse_args()
+
+    net: NeuralNetwork = joblib.load(args.model)
+    extractor = Extractor(args.path, header=[])
     extractor.keep_range_columns((1, 32))
     x, y = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
-
     predict = net.predict(x)
 
-    confusion_matrix = sklearn.metrics.confusion_matrix(y, predict)
-    cm_display = sklearn.metrics.ConfusionMatrixDisplay(
-        confusion_matrix=confusion_matrix, display_labels=[0, 1]
-    )
-    cm_display.plot(cmap=plt.cm.Blues)
     print("Acc:", sklearn.metrics.accuracy_score(y, predict))
     print("Loss:", sklearn.metrics.log_loss(utils.one_hot(y, 2), net.forward(x)))
+
+    if not args.plot:
+        return
+    sklearn.metrics.ConfusionMatrixDisplay.from_predictions(
+        y_true=y,
+        y_pred=predict,
+        display_labels=[0, 1],
+        colorbar=False,
+        cmap=plt.cm.Blues,
+    )
     plt.show()
 
 

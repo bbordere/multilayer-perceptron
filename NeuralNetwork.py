@@ -96,25 +96,20 @@ class NeuralNetwork:
         if not compute_all:
             return
 
+        train_cm = compute_cm(train_pred, y_train)
+        test_cm = compute_cm(val_pred, y_test)
+
         self.metrics["train_acc"].append(sum(train_pred == y_train) / len(y_train))
         self.metrics["val_acc"].append(sum(val_pred == y_test) / len(y_test))
 
-        self.metrics["train_f1"].append(sklearn.metrics.f1_score(y_train, train_pred))
-        self.metrics["val_f1"].append(sklearn.metrics.f1_score(y_test, val_pred))
+        self.metrics["train_f1"].append(train_cm["f1"])
+        self.metrics["val_f1"].append(test_cm["f1"])
 
-        self.metrics["train_recall"].append(
-            sklearn.metrics.recall_score(y_train, train_pred)
-        )
-        self.metrics["val_recall"].append(
-            sklearn.metrics.recall_score(y_test, val_pred)
-        )
+        self.metrics["train_recall"].append(train_cm["recall"])
+        self.metrics["val_recall"].append(test_cm["recall"])
 
-        self.metrics["train_precision"].append(
-            sklearn.metrics.precision_score(y_train, train_pred, zero_division=0)
-        )
-        self.metrics["val_precision"].append(
-            sklearn.metrics.precision_score(y_test, val_pred, zero_division=0)
-        )
+        self.metrics["train_precision"].append(train_cm["precision"])
+        self.metrics["val_precision"].append(test_cm["precision"])
 
         self.metrics["train_auc"].append(
             sklearn.metrics.roc_auc_score(y_train, train_pred)
@@ -160,7 +155,7 @@ class NeuralNetwork:
             train (tuple[np.ndarray, np.ndarray]): tuple of training set
             test (tuple[np.ndarray, np.ndarray]): tuple of validation set
             epochs (int, optional): number of max epochs. Defaults to 1000.
-            lr (float, optional): learning rate. Defaults to 0.01.
+            lr (float, optional): learning rateroc. Defaults to 0.01.
             batch_size (int, optional): size of minibatch to train. Defaults to 64.
             early_stop (bool, optional): status of early stopping check to prevent overfitting. Defaults to True.
             optimizer (Optimizer, optional): optimizer used for the training phase. Defaults to Optimizer().
@@ -180,8 +175,7 @@ class NeuralNetwork:
 
         with alive_bar(epochs) as bar:
             for epoch in range(epochs):
-                for batch in get_batches((x_train, y_train), batch_size):
-                    X, Y = batch
+                for X, Y in get_batches((x_train, y_train), batch_size):
                     predict = self.forward(X)
                     self.backward(predict, Y)
                 self.compute_metrics(train, test, compute_all)
