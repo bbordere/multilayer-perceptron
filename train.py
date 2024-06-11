@@ -7,7 +7,7 @@ from utils import *
 import sklearn
 import pandas as pd
 
-np.random.seed(4242)
+np.random.seed(42)
 
 
 def main() -> None:
@@ -28,29 +28,29 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    x_train, y_train, x_valid, y_valid = data_process(args.train_path, 0.1)
+    x_train, y_train, x_valid, y_valid = data_process(args.train_path, 0.2)
 
     net = NeuralNetwork(
-        [
-            DenseLayer(x_train.shape[1], 30),
-            ActivationLayer("relu"),
-            DenseLayer(30, 10),
-            ActivationLayer("relu"),
-            DenseLayer(10, 2),
-            SoftmaxLayer(),
-        ]
         # [
-        #     DenseLayer(x_train.shape[1], 10),
-        #     ActivationLayer("elu"),
-        #     DenseLayer(10, 6),
-        #     ActivationLayer("tanh"),
-        #     DenseLayer(6, 6),
+        #     DenseLayer(x_train.shape[1], 30),
         #     ActivationLayer("relu"),
-        #     DenseLayer(6, 10, "xavier"),
-        #     ActivationLayer("tanh"),
-        #     DenseLayer(10, 2, "xavier"),
+        #     DenseLayer(30, 10),
+        #     ActivationLayer("relu"),
+        #     DenseLayer(10, 2),
         #     SoftmaxLayer(),
         # ]
+        [
+            DenseLayer(x_train.shape[1], 10),
+            ActivationLayer("elu"),
+            DenseLayer(10, 6),
+            ActivationLayer("tanh"),
+            DenseLayer(6, 6),
+            ActivationLayer("relu"),
+            DenseLayer(6, 10, "xavier"),
+            ActivationLayer("tanh"),
+            DenseLayer(10, 2, "xavier"),
+            SoftmaxLayer(),
+        ]
         # [
         #     DenseLayer(30, 24),
         #     ActivationLayer("sigmoid"),
@@ -68,9 +68,9 @@ def main() -> None:
         (x_valid, y_valid),
         epochs=200,
         lr=0.01,
-        batch_size=20,
+        batch_size=1,
         # optimizer=AdamOptimizer(),
-        # early_stop=False,
+        early_stop=False,
         # optimizer=SGDMOptimizer(),
         # optimizer=RMSPropOptimizer(),
         compute_all=not args.noplot,

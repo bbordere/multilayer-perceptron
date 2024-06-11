@@ -73,6 +73,7 @@ class Extractor:
         """
         x = self.data.drop(label_name, axis=1)
         y = None
+
         if need_facto:
             y = pd.factorize(self.data[label_name])[0]
         else:

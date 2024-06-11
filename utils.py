@@ -33,7 +33,11 @@ def data_process(
     assert test_part < 1
     extractor = Extractor(path, header=[])
     extractor.keep_range_columns((1, 32))
+
     x, y = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
+
+    print(x, y)
+
     limit = int((1 - test_part) * len(x))
     x_train = x[:limit].values
     y_train = y[:limit]

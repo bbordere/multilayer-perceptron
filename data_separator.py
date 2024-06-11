@@ -2,6 +2,7 @@ from Extractor import Extractor
 import argparse
 import os
 import numpy as np
+import pandas as pd
 
 columns_names = [
     "id",
@@ -60,16 +61,33 @@ def main() -> None:
     args = parser.parse_args()
 
     extractor = Extractor(args.path, names=columns_names)
-    extractor.data = extractor.data.sample(frac=1).reset_index(drop=True)
+    extractor.data = extractor.data.sort_values("diagnosis")
 
-    train_part = int((args.percentage / 100) * len(extractor.data))
-    train_cnt = extractor.data[:train_part]
-    test_cnt = extractor.data[train_part:]
+    validation_part = int(((100 - args.percentage) / 100) * len(extractor.data))
+    print(validation_part)
+
+    n_m = validation_part // 2
+
+    print(n_m, validation_part - n_m)
+
+    train_cnt = extractor.data.drop(extractor.data.index[:n_m]).drop(
+        extractor.data.index[-(validation_part - n_m) :]
+    )
+    validation_cnt = pd.concat(
+        [extractor.data[:n_m], extractor.data[-(validation_part - n_m) :]]
+    )
+
+    # train_cnt = train_cnt.apply(np.random.permutation, axis=0)
+    # validation_cnt = validation_cnt.apply(np.random.permutation, axis=0)
+
+    train_cnt = train_cnt.sort_values("id")
+    validation_cnt = validation_cnt.sort_values("id")
+
     dir = os.path.dirname(args.path)
     name = os.path.splitext(os.path.basename(args.path))[0]
 
     train_cnt.to_csv(f"{dir}/{name}_train.csv", index=False)
-    test_cnt.to_csv(f"{dir}/{name}_test.csv", index=False)
+    validation_cnt.to_csv(f"{dir}/{name}_test.csv", index=False)
 
 
 if __name__ == "__main__":
