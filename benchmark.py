@@ -54,7 +54,9 @@ def main() -> None:
     x_valid, y_valid = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
 
     x_train = x_train.values
+    y_train = y_train.values
     x_valid = x_valid.values
+    y_valid = y_valid.values
 
     model = NeuralNetwork(
         [
@@ -69,13 +71,13 @@ def main() -> None:
         ]
     )
 
-    model1 = copy.deepcopy(model)
-    model2 = copy.deepcopy(model)
-    model3 = copy.deepcopy(model)
-    model4 = copy.deepcopy(model)
+    model1: NeuralNetwork = copy.deepcopy(model)
+    model2: NeuralNetwork = copy.deepcopy(model)
+    model3: NeuralNetwork = copy.deepcopy(model)
+    model4: NeuralNetwork = copy.deepcopy(model)
 
     LR = 0.001
-    BS = 32
+    BS = 16
     EPOCHS = 500
 
     model1.fit(
@@ -85,7 +87,8 @@ def main() -> None:
         lr=LR,
         batch_size=BS,
         verbose=False,
-        early_stop=False,
+        compute_all=True,
+        # early_stop=False,
     )
 
     model2.fit(
@@ -96,7 +99,8 @@ def main() -> None:
         batch_size=BS,
         optimizer=SGDMOptimizer(),
         verbose=False,
-        early_stop=False,
+        compute_all=True,
+        # early_stop=False,
     )
 
     model3.fit(
@@ -107,7 +111,8 @@ def main() -> None:
         batch_size=BS,
         optimizer=AdamOptimizer(),
         verbose=False,
-        early_stop=False,
+        compute_all=True,
+        # early_stop=False,
     )
 
     model4.fit(
@@ -118,28 +123,33 @@ def main() -> None:
         batch_size=BS,
         optimizer=RMSPropOptimizer(),
         verbose=False,
-        early_stop=False,
+        compute_all=True,
+        # early_stop=False,
     )
 
     print(
+        model1.optimizer.name,
         model1.score(x_valid, y_valid),
-        model1.metrics["val_loss"][-1],
-        model1.metrics["epoch"][-1],
+        model1.metrics["val_loss"][-11],
+        model1.metrics["epoch"][-11],
     )
     print(
+        model2.optimizer.name,
         model2.score(x_valid, y_valid),
-        model2.metrics["val_loss"][-1],
-        model2.metrics["epoch"][-1],
+        model2.metrics["val_loss"][-11],
+        model2.metrics["epoch"][-11],
     )
     print(
+        model3.optimizer.name,
         model3.score(x_valid, y_valid),
-        model3.metrics["val_loss"][-1],
-        model3.metrics["epoch"][-1],
+        model3.metrics["val_loss"][-11],
+        model3.metrics["epoch"][-11],
     )
     print(
+        model4.optimizer.name,
         model4.score(x_valid, y_valid),
-        model4.metrics["val_loss"][-1],
-        model4.metrics["epoch"][-1],
+        model4.metrics["val_loss"][-11],
+        model4.metrics["epoch"][-11],
     )
 
     plots_optimizers([model1, model2, model3, model4])

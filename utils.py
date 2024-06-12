@@ -2,6 +2,42 @@ import numpy as np
 import sklearn
 import sklearn.metrics
 from Extractor import Extractor
+import pandas as pd
+
+columns_names = [
+    "id",
+    "diagnosis",
+    "radius_mean",
+    "texture_mean",
+    "perimeter_mean",
+    "area_mean",
+    "smoothness_mean",
+    "compactness_mean",
+    "concavity_mean",
+    "concave points_mean",
+    "symmetry_mean",
+    "fractal_dimension_mean",
+    "radius_se",
+    "texture_se",
+    "perimeter_se",
+    "area_se",
+    "smoothness_se",
+    "compactness_se",
+    "concavity_se",
+    "concave points_se",
+    "symmetry_se",
+    "fractal_dimension_se",
+    "radius_worst",
+    "texture_worst",
+    "perimeter_worst",
+    "area_worst",
+    "smoothness_worst",
+    "compactness_worst",
+    "concavity_worst",
+    "concave points_worst",
+    "symmetry_worst",
+    "fractal_dimension_worst",
+]
 
 
 def get_batches(dataset, batch_size):
@@ -29,25 +65,22 @@ def one_hot(a, num_classes):
 def data_process(
     path: str, test_part: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    assert test_part > 0.05
+    assert test_part > 0.01
     assert test_part < 1
     extractor = Extractor(path, header=[])
     extractor.keep_range_columns((1, 32))
 
     x, y = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
 
-    print(x, y)
-
-    limit = int((1 - test_part) * len(x))
-    x_train = x[:limit].values
-    y_train = y[:limit]
-    x_valid = x[limit:].values
-    y_valid = y[limit:]
-
-    return x_train, y_train, x_valid, y_valid
+    df = pd.concat([x, y], axis=1)
+    x_train, y_train, x_valid, y_valid = stratified_train_test_split(
+        df, "diagnosis", test_size=test_part
+    )
+    return x_train.values, y_train.values, x_valid.values, y_valid.values
 
 
 def compute_cm(pred: np.ndarray, target: np.ndarray) -> dict:
+    np.seterr(divide="ignore", invalid="ignore")
     res = {}
     res["fp"] = np.sum((pred == 1) & (target == 0))
     res["tp"] = np.sum((pred == 1) & (target == 1))
@@ -60,3 +93,41 @@ def compute_cm(pred: np.ndarray, target: np.ndarray) -> dict:
     res["f1"] = 2 / ((1 / res["precision"]) + 1 / res["recall"])
     res["fpr"] = res["fp"] / (res["fp"] + res["tn"])
     return res
+
+
+def stratified_train_test_split(
+    data: pd.DataFrame,
+    target: str,
+    train_path: str = "data/data_train.csv",
+    test_path: str = "data/data_test.csv",
+    test_size: float = 0.2,
+    store: bool = False,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    x = data.drop(columns=[target])
+    y = data[target]
+
+    test_counts = (y.value_counts() * test_size).round().astype(int)
+
+    train_id, test_id = [], []
+
+    for label, count in test_counts.items():
+        indices = y[y == label].index.to_numpy()
+        np.random.shuffle(indices)
+        test_id.extend(indices[:count])
+        train_id.extend(indices[count:])
+
+    x_train, y_train, x_test, y_test = (
+        x.loc[train_id],
+        y.loc[train_id],
+        x.loc[test_id],
+        y.loc[test_id],
+    )
+
+    train_df = pd.concat([x_train, y_train], axis=1)[data.columns]
+    test_df = pd.concat([x_test, y_test], axis=1)[data.columns]
+
+    if store:
+        train_df.to_csv(train_path, header=columns_names)
+        test_df.to_csv(test_path, header=columns_names)
+
+    return x_train, y_train, x_test, y_test

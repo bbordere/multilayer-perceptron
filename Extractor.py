@@ -79,7 +79,8 @@ class Extractor:
         else:
             y = self.data[label_name]
         if replace_params:
-            y = y.replace(replace_params).to_numpy().astype(int)
+            # y = y.replace(replace_params).to_numpy().astype(int)
+            y = y.replace(replace_params).astype(int)
 
         x = (x - x.mean()) / x.std()
         return x, y

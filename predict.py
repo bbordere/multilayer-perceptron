@@ -30,10 +30,11 @@ def main() -> None:
     extractor = Extractor(args.path, header=[])
     extractor.keep_range_columns((1, 32))
     x, y = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
+    y = y.to_numpy()
     predict = net.predict(x)
 
     print("Acc:", sklearn.metrics.accuracy_score(y, predict))
-    print("Loss:", sklearn.metrics.log_loss(utils.one_hot(y, 2), net.forward(x)))
+    print("Loss:", utils.BCE(utils.one_hot(y, 2), net.forward(x)))
 
     if not args.plot:
         return

@@ -93,14 +93,14 @@ class NeuralNetwork:
         )
         self.metrics["val_loss"].append(BCE(one_hot(y_test, 2), self.forward(x_test)))
 
+        self.metrics["train_acc"].append(sum(train_pred == y_train) / len(y_train))
+        self.metrics["val_acc"].append(sum(val_pred == y_test) / len(y_test))
+
         if not compute_all:
             return
 
         train_cm = compute_cm(train_pred, y_train)
         test_cm = compute_cm(val_pred, y_test)
-
-        self.metrics["train_acc"].append(sum(train_pred == y_train) / len(y_train))
-        self.metrics["val_acc"].append(sum(val_pred == y_test) / len(y_test))
 
         self.metrics["train_f1"].append(train_cm["f1"])
         self.metrics["val_f1"].append(test_cm["f1"])
@@ -173,6 +173,8 @@ class NeuralNetwork:
 
         self.compute_metrics(train, test, compute_all)
 
+        limit = 10
+
         with alive_bar(epochs) as bar:
             for epoch in range(epochs):
                 for X, Y in get_batches((x_train, y_train), batch_size):
@@ -185,12 +187,15 @@ class NeuralNetwork:
                     )
                 bar()
                 if early_stop and self.early_stop_check(
-                    metric="val_loss", eps=1e-4, limit=10
+                    metric="val_loss", eps=1e-4, limit=limit
                 ):
-                    print("Early Stoppping !")
+                    if verbose:
+                        print("Early Stoppping !", end=" ")
                     self.layers = self.copy
                     break
         self.metrics["epoch"] = range(0, epoch + 2)
+        if verbose:
+            print(f"Best val_loss: {self.metrics['val_loss'][-(limit + 1)]:.4f}")
 
     def save(self, name: str) -> None:
         """save network to disk
@@ -213,6 +218,10 @@ class NeuralNetwork:
         """
         raw_predict = self.forward(x)
         return np.argmax(raw_predict, axis=1)
+
+    def score(self, x: np.ndarray, y: np.ndarray) -> float:
+        predict = self.predict(x)
+        return sum(predict == y) / len(y)
 
     def plot_metrics(self) -> None:
         """plot all metrics"""
