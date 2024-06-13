@@ -69,6 +69,16 @@ def main() -> None:
             DenseLayer(10, 2),
             SoftmaxLayer(),
         ]
+        # [
+        #     DenseLayer(30, 32),
+        #     ActivationLayer("relu"),
+        #     DenseLayer(32, 20),
+        #     ActivationLayer("sigmoid"),
+        #     DenseLayer(20, 10),
+        #     ActivationLayer("sigmoid"),
+        #     DenseLayer(10, 2),
+        #     SoftmaxLayer(),
+        # ]
     )
 
     model1: NeuralNetwork = copy.deepcopy(model)

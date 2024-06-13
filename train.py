@@ -79,10 +79,10 @@ def main() -> None:
         epochs=500,
         lr=0.001,
         batch_size=16,
-        # optimizer=AdamOptimizer(),
+        optimizer=AdamOptimizer(),
         # early_stop=False,
         # optimizer=SGDMOptimizer(),
-        optimizer=RMSPropOptimizer(),
+        # optimizer=RMSPropOptimizer(),
         compute_all=not args.noplot,
     ),
 

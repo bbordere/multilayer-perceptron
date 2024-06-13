@@ -175,7 +175,7 @@ class NeuralNetwork:
 
         limit = 10
 
-        with alive_bar(epochs) as bar:
+        with alive_bar(epochs, title="Training") as bar:
             for epoch in range(epochs):
                 for X, Y in get_batches((x_train, y_train), batch_size):
                     predict = self.forward(X)
@@ -220,6 +220,15 @@ class NeuralNetwork:
         return np.argmax(raw_predict, axis=1)
 
     def score(self, x: np.ndarray, y: np.ndarray) -> float:
+        """accuracy score on x data
+
+        Args:
+            x (np.ndarray): data to predict
+            y (np.ndarray): target values
+
+        Returns:
+            float: accuracy score
+        """
         predict = self.predict(x)
         return sum(predict == y) / len(y)
 

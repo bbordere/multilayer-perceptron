@@ -1,7 +1,6 @@
 import numpy as np
-import sklearn
-import sklearn.metrics
 from Extractor import Extractor
+from typing import Generator
 import pandas as pd
 
 columns_names = [
@@ -40,7 +39,17 @@ columns_names = [
 ]
 
 
-def get_batches(dataset, batch_size):
+def get_batches(dataset: tuple[np.ndarray, np.ndarray], batch_size: int) -> Generator:
+    """generator function for mini_batch
+
+    Args:
+        dataset (tuple[np.ndarray, np.ndarray]): dataset to split into minibatch
+        batch_size (int): size of mini_batch
+
+    Yields:
+        np.ndarray: mini_batch
+    """
+
     X, Y = dataset
     n_samples = X.shape[0]
     # indices = np.arange(n_samples)
@@ -52,19 +61,47 @@ def get_batches(dataset, batch_size):
         yield X[batch_indices], Y[batch_indices]
 
 
-def BCE(y_true, y_pred, eps: float = 1e-16):
+def BCE(y_true: np.ndarray, y_pred: np.ndarray, eps: float = 1e-16) -> float:
+    """binary cross entropy loss function
+
+    Args:
+        y_true (np.ndarray): target values
+        y_pred (np.ndarray): predicted values
+        eps (float, optional): epsilon value for clipping. Defaults to 1e-16.
+
+    Returns:
+        float: mean loss value for predictions
+    """
     y_pred = np.clip(y_pred, eps, 1 - eps)
     log_loss = -(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
     return np.mean(log_loss)
 
 
-def one_hot(a, num_classes):
+def one_hot(a: np.ndarray, num_classes: int) -> np.ndarray:
+    """onehot encoding
+
+    Args:
+        a (np.ndarray): array to encode
+        num_classes (int): number of class
+
+    Returns:
+        np.ndarray: onehot_encoded array
+    """
     return np.squeeze(np.eye(num_classes)[a.reshape(-1)])
 
 
 def data_process(
     path: str, test_part: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """process data for learnig phase
+
+    Args:
+        path (str): path of dataset
+        test_part (float): test_part for spliting
+
+    Returns:
+        tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: splited parts
+    """
     assert test_part > 0.01
     assert test_part < 1
     extractor = Extractor(path, header=[])
@@ -80,6 +117,15 @@ def data_process(
 
 
 def compute_cm(pred: np.ndarray, target: np.ndarray) -> dict:
+    """compute confusion matrix and other metrics
+
+    Args:
+        pred (np.ndarray): predictions of neural network
+        target (np.ndarray): target values for predictions
+
+    Returns:
+        dict: contains metrics
+    """
     np.seterr(divide="ignore", invalid="ignore")
     res = {}
     res["fp"] = np.sum((pred == 1) & (target == 0))
@@ -97,14 +143,27 @@ def compute_cm(pred: np.ndarray, target: np.ndarray) -> dict:
 
 def stratified_train_test_split(
     data: pd.DataFrame,
-    target: str,
+    label: str,
     train_path: str = "data/data_train.csv",
     test_path: str = "data/data_test.csv",
     test_size: float = 0.2,
     store: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    x = data.drop(columns=[target])
-    y = data[target]
+    """stratified split to ensure same repartition on label
+
+    Args:
+        data (pd.DataFrame): data to split
+        label (str): label to split
+        train_path (str, optional): path to train path if store flag is set. Defaults to "data/data_train.csv".
+        test_path (str, optional): path to test path if store flag is set. Defaults to "data/data_test.csv".
+        test_size (float, optional): test_part for spliting. Defaults to 0.2.
+        store (bool, optional): flag to store splitted part on csv files. Defaults to False.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]: splitted parts
+    """
+    x = data.drop(columns=[label])
+    y = data[label]
 
     test_counts = (y.value_counts() * test_size).round().astype(int)
 
