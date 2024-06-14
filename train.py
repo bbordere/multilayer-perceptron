@@ -72,6 +72,7 @@ def main() -> None:
         #     SoftmaxLayer(),
         # ]
     )
+    print(net)
 
     net.fit(
         (x_train, y_train),

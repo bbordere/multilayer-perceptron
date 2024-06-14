@@ -97,7 +97,7 @@ def data_process(
 
     Args:
         path (str): path of dataset
-        test_part (float): test_part for spliting
+        test_part (float): test_part for splitting
 
     Returns:
         tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: splited parts
@@ -156,7 +156,7 @@ def stratified_train_test_split(
         label (str): label to split
         train_path (str, optional): path to train path if store flag is set. Defaults to "data/data_train.csv".
         test_path (str, optional): path to test path if store flag is set. Defaults to "data/data_test.csv".
-        test_size (float, optional): test_part for spliting. Defaults to 0.2.
+        test_size (float, optional): test_part for splitting. Defaults to 0.2.
         store (bool, optional): flag to store splitted part on csv files. Defaults to False.
 
     Returns:

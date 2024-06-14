@@ -10,13 +10,13 @@ import copy
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-np.random.seed(42)
-
 
 def plots_optimizers(models: list[NeuralNetwork]) -> None:
     fig, axes = plt.subplots(1, 2)
+    metrics = ["val_acc", "val_loss", "epoch"]
     for i in range(len(models)):
-        data = pd.DataFrame.from_dict(models[i].metrics)
+        met = dict((k, models[i].metrics[k]) for k in metrics if k in models[i].metrics)
+        data = pd.DataFrame.from_dict(met)
         sns.lineplot(
             x="epoch",
             y="val_loss",
@@ -36,6 +36,8 @@ def plots_optimizers(models: list[NeuralNetwork]) -> None:
 
 
 def main() -> None:
+    np.random.seed(4242)
+
     parser = argparse.ArgumentParser(
         prog="benchmark",
         description="benchmark multiple models",
@@ -63,10 +65,8 @@ def main() -> None:
             DenseLayer(x_train.shape[1], 30),
             ActivationLayer("relu"),
             DenseLayer(30, 20),
-            ActivationLayer("relu"),
-            DenseLayer(20, 10),
-            ActivationLayer("relu"),
-            DenseLayer(10, 2),
+            ActivationLayer("tanh"),
+            DenseLayer(20, 2),
             SoftmaxLayer(),
         ]
         # [
@@ -81,87 +81,37 @@ def main() -> None:
         # ]
     )
 
+    LR = 0.001
+    BS = 64
+    EPOCHS = 500
+
     model1: NeuralNetwork = copy.deepcopy(model)
     model2: NeuralNetwork = copy.deepcopy(model)
     model3: NeuralNetwork = copy.deepcopy(model)
     model4: NeuralNetwork = copy.deepcopy(model)
 
-    LR = 0.001
-    BS = 16
-    EPOCHS = 500
+    models = [model1, model2, model3, model4]
+    optimizers = [Optimizer(), SGDMOptimizer(), RMSPropOptimizer(), AdamOptimizer()]
 
-    model1.fit(
-        (x_train, y_train),
-        (x_valid, y_valid),
-        epochs=EPOCHS,
-        lr=LR,
-        batch_size=BS,
-        verbose=False,
-        compute_all=True,
-        # early_stop=False,
-    )
+    for i in range(4):
+        models[i].fit(
+            (x_train, y_train),
+            (x_valid, y_valid),
+            epochs=EPOCHS,
+            lr=LR,
+            batch_size=BS,
+            verbose=False,
+            compute_all=False,
+            optimizer=optimizers[i],
+        )
 
-    model2.fit(
-        (x_train, y_train),
-        (x_valid, y_valid),
-        epochs=EPOCHS,
-        lr=LR,
-        batch_size=BS,
-        optimizer=SGDMOptimizer(),
-        verbose=False,
-        compute_all=True,
-        # early_stop=False,
-    )
-
-    model3.fit(
-        (x_train, y_train),
-        (x_valid, y_valid),
-        epochs=EPOCHS,
-        lr=LR,
-        batch_size=BS,
-        optimizer=AdamOptimizer(),
-        verbose=False,
-        compute_all=True,
-        # early_stop=False,
-    )
-
-    model4.fit(
-        (x_train, y_train),
-        (x_valid, y_valid),
-        epochs=EPOCHS,
-        lr=LR,
-        batch_size=BS,
-        optimizer=RMSPropOptimizer(),
-        verbose=False,
-        compute_all=True,
-        # early_stop=False,
-    )
-
-    print(
-        model1.optimizer.name,
-        model1.score(x_valid, y_valid),
-        model1.metrics["val_loss"][-11],
-        model1.metrics["epoch"][-11],
-    )
-    print(
-        model2.optimizer.name,
-        model2.score(x_valid, y_valid),
-        model2.metrics["val_loss"][-11],
-        model2.metrics["epoch"][-11],
-    )
-    print(
-        model3.optimizer.name,
-        model3.score(x_valid, y_valid),
-        model3.metrics["val_loss"][-11],
-        model3.metrics["epoch"][-11],
-    )
-    print(
-        model4.optimizer.name,
-        model4.score(x_valid, y_valid),
-        model4.metrics["val_loss"][-11],
-        model4.metrics["epoch"][-11],
-    )
-
+    for i in range(4):
+        print(
+            optimizers[i].name,
+            models[i].score(x_valid, y_valid),
+            models[i].metrics["val_loss"][-11],
+            models[i].metrics["epoch"][-11],
+        )
     plots_optimizers([model1, model2, model3, model4])
 
 

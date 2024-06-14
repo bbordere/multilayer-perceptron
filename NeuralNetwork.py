@@ -9,8 +9,8 @@ import seaborn as sns
 import pandas as pd
 import copy
 import joblib
-
 import sklearn
+import os
 
 
 class NeuralNetwork:
@@ -37,9 +37,16 @@ class NeuralNetwork:
         self.optimizer = None
 
     def __str__(self) -> str:
-        res = "Network:\n"
-        for l in self.layers:
-            res += "\t" + str(l) + "\n"
+        res = f"{'':=<61}\n"
+        res += f"{'Layer':<19}{'Function':<15}{'Input Shape':<15}{'Output Shape':<15}\n"
+        res += f"{'':=<61}\n"
+        for i in range(len(self.layers)):
+            match self.layers[i].__class__.__name__:
+                case "DenseLayer":
+                    res += f"{str(self.layers[i]):<19}{'sum':<15}{self.layers[i].input_size:<15}{self.layers[i].output_size:<15}\n"
+                case _:
+                    res += f"{str(self.layers[i]):<19}{self.layers[i].name:<15}{self.layers[i - 1].input_size:<15}{self.layers[i - 1].output_size:<15}\n"
+        res += f"{'':=<61}\n"
         return res
 
     def __repr__(self) -> str:
@@ -190,7 +197,7 @@ class NeuralNetwork:
                     metric="val_loss", eps=1e-4, limit=limit
                 ):
                     if verbose:
-                        print("Early Stoppping !", end=" ")
+                        print("Early Stoppping !")
                     self.layers = self.copy
                     break
         self.metrics["epoch"] = range(0, epoch + 2)
@@ -204,6 +211,8 @@ class NeuralNetwork:
             name (str): name of model
         """
         print(f"Saving model into 'models/{name}.joblib'...")
+        if not os.path.exists("models"):
+            os.makedirs("models")
         with open(f"models/{name}.joblib", "wb") as f:
             joblib.dump(self, f)
 
@@ -333,4 +342,12 @@ class NeuralNetwork:
 
 
 if __name__ == "__main__":
-    pass
+    model = NeuralNetwork(
+        [
+            DenseLayer(30, 10),
+            ActivationLayer("sigmoid"),
+            DenseLayer(30, 2),
+            SoftmaxLayer(),
+        ]
+    )
+    print(model)

@@ -35,6 +35,9 @@ class AbstractLayer:
     def backward(self, out_grad: np.ndarray, lr: float) -> np.ndarray:
         raise NotImplementedError
 
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
 
 class DenseLayer(AbstractLayer):
     def __init__(
@@ -67,6 +70,7 @@ class DenseLayer(AbstractLayer):
 class ActivationLayer:
     def __init__(self, activation: str) -> None:
         self.act_func, self.act_func_prime = get_activation(activation)
+        self.name = activation
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         self.input = x
@@ -77,8 +81,14 @@ class ActivationLayer:
     ) -> np.ndarray:
         return out_grad * self.act_func_prime(self.input)
 
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
 
 class SoftmaxLayer:
+    def __init__(self) -> None:
+        self.name = "softmax"
+
     def forward(self, x: np.ndarray):
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
         return e_x / np.sum(e_x, axis=-1, keepdims=True)
@@ -86,11 +96,15 @@ class SoftmaxLayer:
     def backward(self, grad_output, lr: float, optimizer: Optimizer):
         return grad_output
 
+    def __str__(self) -> str:
+        return self.__class__.__name__
+
 
 class DropoutLayer:
     def __init__(self, dropout_rate: float):
         self.dropout_rate = dropout_rate
         self.mask = None
+        self.name = "dropout"
 
     def forward(self, inputs, training=True):
         if training:
@@ -100,3 +114,6 @@ class DropoutLayer:
 
     def backward(self, out_grad: np.ndarray, lr: float, optimizer: Optimizer):
         return out_grad * self.mask / (1 - self.dropout_rate)
+
+    def __str__(self) -> str:
+        return self.__class__.__name__
