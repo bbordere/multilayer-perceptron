@@ -1,13 +1,10 @@
 from NeuralNetwork import NeuralNetwork
 from Layer import *
-from Extractor import Extractor
-import joblib
 import argparse
 from utils import *
-import sklearn
-import pandas as pd
 
 np.random.seed(4242)
+# 15 6
 
 
 def main() -> None:

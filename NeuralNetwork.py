@@ -123,9 +123,7 @@ class NeuralNetwork:
         )
         self.metrics["val_auc"].append(sklearn.metrics.roc_auc_score(y_test, val_pred))
 
-    def early_stop_check(
-        self, metric: str = "val_loss", eps: float = 1e-3, limit: int = 10
-    ) -> bool:
+    def early_stop_check(self, metric: str = "val_loss", eps: float = 1e-3) -> bool:
         """early stop function
 
         Args:
@@ -142,7 +140,7 @@ class NeuralNetwork:
             self.copy = copy.deepcopy(self.layers)
         else:
             self.early_counter += 1
-        return self.early_counter == limit
+        return self.early_counter == self.patience
 
     def fit(
         self,
@@ -155,6 +153,7 @@ class NeuralNetwork:
         optimizer: Optimizer = Optimizer(),
         verbose: bool = True,
         compute_all: bool = True,
+        patience: int = 10,
     ) -> None:
         """fit the network
 
@@ -174,13 +173,12 @@ class NeuralNetwork:
         self.optimizer = optimizer
         self.optimizer.lr = self.lr
         self.copy = self.layers
+        self.patience = patience
 
         x_train, y_train = train
         y_train = one_hot(y_train, 2)
 
         self.compute_metrics(train, test, compute_all)
-
-        limit = 10
 
         with alive_bar(epochs, title="Training") as bar:
             for epoch in range(epochs):
@@ -193,16 +191,16 @@ class NeuralNetwork:
                         f"loss: {self.metrics['train_loss'][-1]:.4f} - val_loss: {self.metrics['val_loss'][-1]:.4f}",
                     )
                 bar()
-                if early_stop and self.early_stop_check(
-                    metric="val_loss", eps=1e-4, limit=limit
-                ):
+                if early_stop and self.early_stop_check(metric="val_loss", eps=1e-4):
                     if verbose:
                         print("Early Stoppping !")
                     self.layers = self.copy
                     break
         self.metrics["epoch"] = range(0, epoch + 2)
         if verbose:
-            print(f"Best val_loss: {self.metrics['val_loss'][-(limit + 1)]:.4f}")
+            print(
+                f"Best val_loss: {self.metrics['val_loss'][-(self.patience + 1)]:.4f}"
+            )
 
     def save(self, name: str) -> None:
         """save network to disk

@@ -1,10 +1,8 @@
 from NeuralNetwork import NeuralNetwork
 from Layer import *
 from Extractor import Extractor
-import joblib
 import argparse
 from utils import *
-import sklearn
 import pandas as pd
 import copy
 import matplotlib.pyplot as plt
@@ -109,8 +107,8 @@ def main() -> None:
         print(
             optimizers[i].name,
             models[i].score(x_valid, y_valid),
-            models[i].metrics["val_loss"][-11],
-            models[i].metrics["epoch"][-11],
+            models[i].metrics["val_loss"][-models[i].patience],
+            models[i].metrics["epoch"][-models[i].patience],
         )
     plots_optimizers([model1, model2, model3, model4])
 

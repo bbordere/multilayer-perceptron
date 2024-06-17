@@ -1,6 +1,5 @@
 import pandas as pd
 import sys
-import numpy as np
 
 pd.set_option("future.no_silent_downcasting", True)
 

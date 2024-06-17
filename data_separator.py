@@ -1,8 +1,6 @@
 from Extractor import Extractor
 import argparse
-import os
 import numpy as np
-import pandas as pd
 from utils import *
 
 np.random.seed(4242)

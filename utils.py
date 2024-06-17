@@ -186,7 +186,7 @@ def stratified_train_test_split(
     test_df = pd.concat([x_test, y_test], axis=1)[data.columns]
 
     if store:
-        train_df.to_csv(train_path, header=columns_names)
-        test_df.to_csv(test_path, header=columns_names)
+        train_df.to_csv(train_path, header=columns_names, index=False)
+        test_df.to_csv(test_path, header=columns_names, index=False)
 
     return x_train, y_train, x_test, y_test

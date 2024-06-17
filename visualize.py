@@ -21,8 +21,13 @@ def main() -> None:
         "fractal_dimension_mean",
     ]
 
-    sns.pairplot(data=data[cols], hue="diagnosis", palette=["tab:red", "tab:green"])
-    plt.savefig("pairplot.png")
+    if not os.path.exists("plots"):
+        os.makedirs("plots")
+
+    # sns.pairplot(data=data[cols], hue="diagnosis", palette=["tab:red", "tab:green"])
+    # plt.savefig("plots/pairplot.png")
+    sns.histplot(data=data, x="diagnosis", hue="diagnosis")
+    plt.savefig("plots/hist.png")
 
 
 if __name__ == "__main__":

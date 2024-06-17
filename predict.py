@@ -33,7 +33,7 @@ def main() -> None:
     y = y.to_numpy()
     predict = net.predict(x)
 
-    print("Acc:", sklearn.metrics.accuracy_score(y, predict))
+    print("Acc:", net.score(x, y))
     print("Loss:", utils.BCE(utils.one_hot(y, 2), net.forward(x)))
 
     if not args.plot:
