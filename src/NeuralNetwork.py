@@ -75,7 +75,7 @@ class NeuralNetwork:
         """
         grad = predict - target
         for l in reversed(self.layers):
-            grad = l.backward(grad, self.lr, self.optimizer)
+            grad = l.backward(grad, self.optimizer)
 
     def compute_metrics(
         self,

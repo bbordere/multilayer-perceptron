@@ -51,9 +51,7 @@ class DenseLayer(AbstractLayer):
         self.input = x
         return np.dot(x, self.w) + self.b
 
-    def backward(
-        self, out_grad: np.ndarray, lr: float, optimizer: Optimizer
-    ) -> np.ndarray:
+    def backward(self, out_grad: np.ndarray, optimizer: Optimizer) -> np.ndarray:
 
         input_grad = np.dot(out_grad, self.w.T)
         weights_grad = np.dot(self.input.T, out_grad)
@@ -76,9 +74,7 @@ class ActivationLayer:
         self.input = x
         return self.act_func(x)
 
-    def backward(
-        self, out_grad: np.ndarray, lr: float, optimizer: Optimizer
-    ) -> np.ndarray:
+    def backward(self, out_grad: np.ndarray, optimizer: Optimizer) -> np.ndarray:
         return out_grad * self.act_func_prime(self.input)
 
     def __str__(self) -> str:
@@ -93,7 +89,7 @@ class SoftmaxLayer:
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
         return e_x / np.sum(e_x, axis=-1, keepdims=True)
 
-    def backward(self, grad_output, lr: float, optimizer: Optimizer):
+    def backward(self, grad_output, optimizer: Optimizer):
         return grad_output
 
     def __str__(self) -> str:
@@ -112,7 +108,7 @@ class DropoutLayer:
             return inputs * self.mask / (1 - self.dropout_rate)
         return inputs
 
-    def backward(self, out_grad: np.ndarray, lr: float, optimizer: Optimizer):
+    def backward(self, out_grad: np.ndarray, optimizer: Optimizer):
         return out_grad * self.mask / (1 - self.dropout_rate)
 
     def __str__(self) -> str:

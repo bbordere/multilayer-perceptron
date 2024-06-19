@@ -25,7 +25,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    x_train, y_train, x_valid, y_valid = data_process(args.train_path, 0.3)
+    x_train, y_train, x_valid, y_valid = data_process(args.train_path, 0.25)
 
     net = NeuralNetwork(
         [
@@ -78,6 +78,8 @@ def main() -> None:
         lr=0.001,
         batch_size=16,
         optimizer=AdamOptimizer(),
+        # optimizer=SGDMOptimizer(),
+        # optimizer=RMSPropOptimizer(),
         # early_stop=False,
         # optimizer=SGDMOptimizer(),
         # optimizer=RMSPropOptimizer(),
