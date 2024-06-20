@@ -14,9 +14,12 @@ class Extractor:
                 self.data = pd.read_csv(csv_file, header=header, names=names)
             else:
                 self.data = pd.read_csv(csv_file, names=names)
+            assert len(self.data) > 0
         except FileNotFoundError:
             sys.exit(f"File not found {csv_file}")
         except pd.errors.EmptyDataError:
+            sys.exit("Empty file")
+        except AssertionError:
             sys.exit("Empty file")
 
     def keep_range_columns(self, range: tuple[int]) -> pd.DataFrame:
@@ -78,8 +81,6 @@ class Extractor:
         else:
             y = self.data[label_name]
         if replace_params:
-            # y = y.replace(replace_params).to_numpy().astype(int)
             y = y.replace(replace_params).astype(int)
-
         x = (x - x.mean()) / x.std()
         return x, y

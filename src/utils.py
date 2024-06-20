@@ -2,6 +2,7 @@ import numpy as np
 from Extractor import Extractor
 from typing import Generator
 import pandas as pd
+import sys
 
 columns_names = [
     "id",
@@ -110,9 +111,14 @@ def data_process(
     x, y = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
 
     df = pd.concat([x, y], axis=1)
-    x_train, y_train, x_valid, y_valid = stratified_train_test_split(
-        df, "diagnosis", test_size=test_part
-    )
+
+    try:
+        x_train, y_train, x_valid, y_valid = stratified_train_test_split(
+            df, "diagnosis", test_size=test_part
+        )
+    except AssertionError:
+        sys.exit("Not enough data to do stratified split!")
+
     return x_train.values, y_train.values, x_valid.values, y_valid.values
 
 
@@ -184,6 +190,9 @@ def stratified_train_test_split(
 
     train_df = pd.concat([x_train, y_train], axis=1)[data.columns]
     test_df = pd.concat([x_test, y_test], axis=1)[data.columns]
+
+    assert len(train_df) > 0
+    assert len(test_df) > 0
 
     if store:
         train_df.to_csv(train_path, header=columns_names, index=False)

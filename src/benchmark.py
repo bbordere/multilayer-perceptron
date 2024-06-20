@@ -7,10 +7,11 @@ import pandas as pd
 import copy
 import matplotlib.pyplot as plt
 import seaborn as sns
+import example_models
 
 
-def plots_optimizers(models: list[NeuralNetwork]) -> None:
-    fig, axes = plt.subplots(1, 2)
+def plots_optimizers(models: list[NeuralNetwork], names: list[str]) -> None:
+    fig, axes = plt.subplots(2, 2)
     metrics = ["val_acc", "val_loss", "epoch"]
     for i in range(len(models)):
         met = dict((k, models[i].metrics[k]) for k in metrics if k in models[i].metrics)
@@ -19,14 +20,7 @@ def plots_optimizers(models: list[NeuralNetwork]) -> None:
             x="epoch",
             y="val_loss",
             data=data,
-            ax=axes[0],
-            label=str(models[i].optimizer),
-        )
-        sns.lineplot(
-            x="epoch",
-            y="val_acc",
-            data=data,
-            ax=axes[1],
+            ax=axes[i // 8, ((i // 4)) % 2],
             label=str(models[i].optimizer),
         )
 
@@ -58,40 +52,23 @@ def main() -> None:
     x_valid = x_valid.values
     y_valid = y_valid.values
 
-    model = NeuralNetwork(
-        [
-            DenseLayer(x_train.shape[1], 30),
-            ActivationLayer("relu"),
-            DenseLayer(30, 20),
-            ActivationLayer("tanh"),
-            DenseLayer(20, 2),
-            SoftmaxLayer(),
-        ]
-        # [
-        #     DenseLayer(30, 32),
-        #     ActivationLayer("relu"),
-        #     DenseLayer(32, 20),
-        #     ActivationLayer("sigmoid"),
-        #     DenseLayer(20, 10),
-        #     ActivationLayer("sigmoid"),
-        #     DenseLayer(10, 2),
-        #     SoftmaxLayer(),
-        # ]
-    )
+    # model =
 
     LR = 0.001
-    BS = 64
-    EPOCHS = 500
+    BS = 16
+    EPOCHS = 250
 
-    model1: NeuralNetwork = copy.deepcopy(model)
-    model2: NeuralNetwork = copy.deepcopy(model)
-    model3: NeuralNetwork = copy.deepcopy(model)
-    model4: NeuralNetwork = copy.deepcopy(model)
-
-    models = [model1, model2, model3, model4]
+    models = [copy.deepcopy(example_models.RELU_SIG_TANH) for _ in range(4)]
+    models.extend([copy.deepcopy(example_models.SUBJECT) for _ in range(4)])
+    models.extend([copy.deepcopy(example_models.MIX) for _ in range(4)])
+    models.extend([copy.deepcopy(example_models.FULL_RELU) for _ in range(4)])
     optimizers = [Optimizer(), SGDMOptimizer(), RMSPropOptimizer(), AdamOptimizer()]
+    names = ["RELU_SIG", "SUBJECT", "MIX", "FULL_RELU"]
 
-    for i in range(4):
+    for i in range(len(models)):
+        if i % 4 == 0:
+            print(names[i // 4])
+        np.random.seed(4242)
         models[i].fit(
             (x_train, y_train),
             (x_valid, y_valid),
@@ -100,17 +77,21 @@ def main() -> None:
             batch_size=BS,
             verbose=False,
             compute_all=False,
-            optimizer=optimizers[i],
+            optimizer=optimizers[i % 4],
+            # patience=100,
+            early_stop=False,
         )
 
-    for i in range(4):
+    for i in range(len(models)):
+        if i % 4 == 0:
+            print(names[i // 4])
         print(
-            optimizers[i].name,
-            models[i].score(x_valid, y_valid),
-            models[i].metrics["val_loss"][-models[i].patience],
-            models[i].metrics["epoch"][-models[i].patience],
+            optimizers[i % 4].name + "->",
+            f"Acc: {models[i].score(x_valid, y_valid)}",
+            f"Loss: {models[i].metrics['val_loss'][-models[i].patience]}",
+            f"Epoch: {models[i].metrics['epoch'][-models[i].patience]}",
         )
-    plots_optimizers([model1, model2, model3, model4])
+    plots_optimizers(models, names)
 
 
 if __name__ == "__main__":
