@@ -14,9 +14,9 @@ class Optimizer:
 
 
 class SGDMOptimizer(Optimizer):
-    def __init__(self, lr: float = 0.001, momentum: float = 0.9):
+    def __init__(self, lr: float = 0.001, beta: float = 0.9):
         super().__init__(lr)
-        self.momentum = momentum
+        self.beta = beta
         self.velocities = {}
         self.name = "SGDM"
 
@@ -25,8 +25,7 @@ class SGDMOptimizer(Optimizer):
         if weights_id not in self.velocities:
             self.velocities[weights_id] = np.zeros_like(weights)
 
-        v = self.velocities[weights_id]
-        v = self.momentum * v + (1 - self.momentum) * gradients
+        v = self.beta * self.velocities[weights_id] + (1 - self.beta) * gradients
         weights -= self.lr * v
         self.velocities[weights_id] = v
 

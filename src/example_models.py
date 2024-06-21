@@ -17,7 +17,6 @@ FULL_RELU = NeuralNetwork(
     ]
 )
 
-
 SUBJECT = NeuralNetwork(
     [
         DenseLayer(30, 24),
@@ -30,7 +29,6 @@ SUBJECT = NeuralNetwork(
         SoftmaxLayer(),
     ]
 )
-
 
 MIX = NeuralNetwork(
     [
@@ -46,7 +44,6 @@ MIX = NeuralNetwork(
         SoftmaxLayer(),
     ]
 )
-
 
 RELU_SIG_TANH = NeuralNetwork(
     [

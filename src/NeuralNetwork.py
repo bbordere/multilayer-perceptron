@@ -179,7 +179,6 @@ class NeuralNetwork:
         y_train = one_hot(y_train, 2)
 
         self.compute_metrics(train, test, compute_all)
-
         with alive_bar(epochs, title="Training") as bar:
             for epoch in range(epochs):
                 for X, Y in get_batches((x_train, y_train), batch_size):

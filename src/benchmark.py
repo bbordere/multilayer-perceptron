@@ -22,14 +22,25 @@ def plots_optimizers(models: list[NeuralNetwork], names: list[str]) -> None:
             data=data,
             ax=axes[i // 8, ((i // 4)) % 2],
             label=str(models[i].optimizer),
-        )
+        ).set(title=f"Model {names[i // 4]}")
 
+    plt.tight_layout()
     plt.show()
 
 
-def main() -> None:
-    np.random.seed(4242)
+def print_metrics(models: list[NeuralNetwork], names: list[str], datas: tuple):
+    for i in range(len(models)):
+        if i % 4 == 0:
+            print(names[i // 4])
+        print(
+            # optimizers[i % 4].name + "->",
+            f"Acc: {models[i].score(datas[0], datas[1])}",
+            f"Loss: {models[i].metrics['val_loss'][-models[i].patience]}",
+            f"Epoch: {models[i].metrics['epoch'][-models[i].patience]}",
+        )
 
+
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="benchmark",
         description="benchmark multiple models",
@@ -52,10 +63,8 @@ def main() -> None:
     x_valid = x_valid.values
     y_valid = y_valid.values
 
-    # model =
-
     LR = 0.001
-    BS = 16
+    BS = 8
     EPOCHS = 250
 
     models = [copy.deepcopy(example_models.RELU_SIG_TANH) for _ in range(4)]
@@ -63,11 +72,11 @@ def main() -> None:
     models.extend([copy.deepcopy(example_models.MIX) for _ in range(4)])
     models.extend([copy.deepcopy(example_models.FULL_RELU) for _ in range(4)])
     optimizers = [Optimizer(), SGDMOptimizer(), RMSPropOptimizer(), AdamOptimizer()]
-    names = ["RELU_SIG", "SUBJECT", "MIX", "FULL_RELU"]
+    names = ["relu_sig", "subject", "mix", "full_relu"]
 
     for i in range(len(models)):
         if i % 4 == 0:
-            print(names[i // 4])
+            print(models[i], end="")
         np.random.seed(4242)
         models[i].fit(
             (x_train, y_train),
@@ -79,18 +88,11 @@ def main() -> None:
             compute_all=False,
             optimizer=optimizers[i % 4],
             # patience=100,
-            early_stop=False,
         )
+        if i % 4 == 3:
+            print("\n\n")
 
-    for i in range(len(models)):
-        if i % 4 == 0:
-            print(names[i // 4])
-        print(
-            optimizers[i % 4].name + "->",
-            f"Acc: {models[i].score(x_valid, y_valid)}",
-            f"Loss: {models[i].metrics['val_loss'][-models[i].patience]}",
-            f"Epoch: {models[i].metrics['epoch'][-models[i].patience]}",
-        )
+    print_metrics(models, names, (x_train, y_train))
     plots_optimizers(models, names)
 
 
