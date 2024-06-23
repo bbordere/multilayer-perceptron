@@ -14,7 +14,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="predict",
         description="get predictions with trained model",
-        epilog="Text at the bottom of help",
     )
     parser.add_argument("path", help="dataset path", type=str)
     parser.add_argument("model", help="trained model path", type=str)
@@ -32,8 +31,8 @@ def main() -> None:
     x, y = extractor.get_data("diagnosis", replace_params={"B": 0, "M": 1})
     y = y.to_numpy()
     predict = net.predict(x)
-
-    print("Acc:", net.score(x, y))
+    print("Results: ")
+    print("Accurracy:", net.score(x, y))
     print("Loss:", utils.BCE(utils.one_hot(y, 2), net.forward(x)))
 
     if not args.plot:

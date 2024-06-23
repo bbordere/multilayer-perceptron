@@ -10,7 +10,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="train",
         description="train multilayer perceptron",
-        epilog="Text at the bottom of help",
     )
     parser.add_argument("train_path", help="train dataset path", type=str)
     parser.add_argument(
@@ -44,9 +43,9 @@ def main() -> None:
         epochs=500,
         lr=0.001,
         batch_size=16,
-        # optimizer=AdamOptimizer(),
+        optimizer=AdamOptimizer(),
         # optimizer=SGDMOptimizer(),
-        optimizer=RMSPropOptimizer(),
+        # optimizer=RMSPropOptimizer(),
         compute_all=not args.noplot,
     ),
 

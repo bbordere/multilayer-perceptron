@@ -11,6 +11,7 @@ import copy
 import joblib
 import sklearn
 import os
+from tabulate import tabulate
 
 
 class NeuralNetwork:
@@ -37,17 +38,15 @@ class NeuralNetwork:
         self.optimizer = None
 
     def __str__(self) -> str:
-        res = f"{'':=<61}\n"
-        res += f"{'Layer':<19}{'Function':<15}{'Input Shape':<15}{'Output Shape':<15}\n"
-        res += f"{'':=<61}\n"
-        for i in range(len(self.layers)):
-            match self.layers[i].__class__.__name__:
-                case "DenseLayer":
-                    res += f"{str(self.layers[i]):<19}{'sum':<15}{self.layers[i].input_size:<15}{self.layers[i].output_size:<15}\n"
-                case _:
-                    res += f"{str(self.layers[i]):<19}{self.layers[i].name:<15}{self.layers[i - 1].input_size:<15}{self.layers[i - 1].output_size:<15}\n"
-        res += f"{'':=<61}\n"
-        return res
+        headers = ["Layer", "Function", "Shape"]
+        data = []
+        for l in self.layers:
+            if l.__class__.__name__ == "DenseLayer":
+                data.append([str(l), "Weighted Sum", (l.input_size, l.output_size)])
+            else:
+                data.append([str(l), l.name, ""])
+        return tabulate(data, headers=headers, tablefmt="pretty") + "\n\n"
+
 
     def __repr__(self) -> str:
         return str(self)

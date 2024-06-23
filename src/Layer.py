@@ -68,7 +68,7 @@ class DenseLayer(AbstractLayer):
 class ActivationLayer:
     def __init__(self, activation: str) -> None:
         self.act_func, self.act_func_prime = get_activation(activation)
-        self.name = activation
+        self.name = activation.capitalize()
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         self.input = x
@@ -83,7 +83,7 @@ class ActivationLayer:
 
 class SoftmaxLayer:
     def __init__(self) -> None:
-        self.name = "softmax"
+        self.name = "Softmax"
 
     def forward(self, x: np.ndarray):
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
@@ -100,7 +100,7 @@ class DropoutLayer:
     def __init__(self, dropout_rate: float):
         self.dropout_rate = dropout_rate
         self.mask = None
-        self.name = "dropout"
+        self.name = "Dropout"
 
     def forward(self, inputs, training=True):
         if training:

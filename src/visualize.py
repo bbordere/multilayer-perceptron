@@ -11,14 +11,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="visualize",
         description="Make histplot and pairplot for data visualization",
-        epilog="Text at the bottom of help",
     )
     parser.add_argument("path", help="dataset to visualize", type=str)
     args = parser.parse_args()
 
     extractor = Extractor(args.path, names=columns_names)
 
-    cols = [
+    names = [
         "diagnosis",
         "radius_mean",
         "texture_mean",
@@ -43,14 +42,16 @@ def main() -> None:
         hue="diagnosis",
         palette=["tab:red", "tab:green"],
     )
-    plt.savefig("plots/hist.png")
+    plt.savefig("plots/hist.png", dpi=100, bbox_inches="tight")
 
     print("Saving plots/pairplot.png...")
     plt.figure()
     sns.pairplot(
-        data=extractor.data[cols], hue="diagnosis", palette=["tab:red", "tab:green"]
+        data=extractor.data[names],
+        hue="diagnosis",
+        palette=["tab:red", "tab:green"],
     )
-    plt.savefig("plots/pairplot.png")
+    plt.savefig("plots/pairplot.png", dpi=100, bbox_inches="tight")
     print("Plots saved!")
 
 

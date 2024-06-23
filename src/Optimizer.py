@@ -2,11 +2,18 @@ import numpy as np
 
 
 class Optimizer:
+    """A base class for optimizers"""
+
     def __init__(self, lr: float = 0.01) -> None:
         self.lr = lr
         self.name = "SGD"
 
-    def optimize(self, weights, gradients):
+    def optimize(self, weights: np.ndarray, gradients: np.ndarray):
+        """Update weights using stochastic gradient descent
+        Args:
+            weights (numpy.ndarray): weights to update
+            gradients (numpy.ndarray): gradients used for updating the weights
+        """
         weights -= self.lr * gradients
 
     def __str__(self) -> str:
@@ -14,13 +21,20 @@ class Optimizer:
 
 
 class SGDMOptimizer(Optimizer):
+    """Stochastic Gradient Descent Momentum"""
+
     def __init__(self, lr: float = 0.001, beta: float = 0.9):
         super().__init__(lr)
         self.beta = beta
         self.velocities = {}
         self.name = "SGDM"
 
-    def optimize(self, weights, gradients):
+    def optimize(self, weights: np.ndarray, gradients: np.ndarray):
+        """Update weights using stochastic gradient descent with momentum
+        Args:
+            weights (numpy.ndarray): weights to update
+            gradients (numpy.ndarray): gradients used for updating the weights
+        """
         weights_id = id(weights)
         if weights_id not in self.velocities:
             self.velocities[weights_id] = np.zeros_like(weights)
@@ -42,16 +56,20 @@ class AdamOptimizer(Optimizer):
         self.beta1 = beta1
         self.beta2 = beta2
         self.epsilon = epsilon
-        self.m = {}
-        self.v = {}
+        self.m = {}  # average of past gradients
+        self.v = {}  # average of squared gradients
         self.t = 0
         self.name = "ADAM"
 
-    def optimize(self, weights, gradients):
+    def optimize(self, weights: np.ndarray, gradients: np.ndarray):
+        """Update weights using adam optimizer
+        Args:
+            weights (numpy.ndarray): weights to update
+            gradients (numpy.ndarray): gradients used for updating the weights
+        """
         weights_id = id(weights)
         if weights_id not in self.m:
             self.m[weights_id] = np.zeros_like(weights)
-        if weights_id not in self.v:
             self.v[weights_id] = np.zeros_like(weights)
 
         self.t += 1
@@ -63,7 +81,10 @@ class AdamOptimizer(Optimizer):
             gradients**2
         )
 
+        # average past gradients over time
         m_hat = self.m[weights_id] / (1 - self.beta1**self.t)
+
+        # average squared gradients over time
         v_hat = self.v[weights_id] / (1 - self.beta2**self.t)
 
         weights -= self.lr * m_hat / (np.sqrt(v_hat) + self.epsilon)
@@ -77,7 +98,12 @@ class RMSPropOptimizer(Optimizer):
         self.s = {}
         self.name = "RMSProp"
 
-    def optimize(self, weights, gradients):
+    def optimize(self, weights: np.ndarray, gradients: np.ndarray):
+        """Update weights using RMSprop optimizer
+        Args:
+            weights (numpy.ndarray): weights to update
+            gradients (numpy.ndarray): gradients used for updating the weights
+        """
         weights_id = id(weights)
         if weights_id not in self.s:
             self.s[weights_id] = np.zeros_like(weights)

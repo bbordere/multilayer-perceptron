@@ -53,8 +53,6 @@ def get_batches(dataset: tuple[np.ndarray, np.ndarray], batch_size: int) -> Gene
 
     X, Y = dataset
     n_samples = X.shape[0]
-    # indices = np.arange(n_samples)
-    # np.random.shuffle(indices)
     indices = np.random.permutation(len(X))
     for start in range(0, n_samples, batch_size):
         end = min(start + batch_size, n_samples)

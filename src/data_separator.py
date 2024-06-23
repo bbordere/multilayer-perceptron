@@ -11,7 +11,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="data_separator",
         description="Split dataset into two parts, one for training and the other for validation",
-        epilog="Text at the bottom of help",
     )
     parser.add_argument("path", help="dataset path to split", type=str)
     parser.add_argument(

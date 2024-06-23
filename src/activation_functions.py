@@ -2,7 +2,6 @@ import numpy as np
 
 
 def sigmoid(x: np.ndarray) -> np.ndarray:
-    # return 1 / (1 + np.exp(-x))
     return np.where(x >= 0, 1 / (1 + np.exp(-x)), np.exp(x) / (1 + np.exp(x)))
 
 
@@ -28,12 +27,10 @@ def d_tanh(x: np.ndarray) -> np.ndarray:
 
 
 def elu(x: np.ndarray) -> np.ndarray:
-    # return x if (x > 0).astype(x.dtype) else np.exp(x) - 1
     return np.where(x > 0, x, np.exp(x) - 1)
 
 
 def d_elu(x: np.ndarray) -> np.ndarray:
-    # return 1 if (x > 0).astype(x.dtype) else np.exp(x)
     return np.where(x > 0, 1, np.exp(x))
 
 

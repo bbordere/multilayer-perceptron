@@ -8,9 +8,17 @@ import copy
 import matplotlib.pyplot as plt
 import seaborn as sns
 import example_models
+from tabulate import tabulate
 
 
 def plots_optimizers(models: list[NeuralNetwork], names: list[str]) -> None:
+    """
+    plots validation loss against the epoch number for each model and optimizer
+
+    Args:
+        models (list[NeuralNetwork]): list of NeuralNetwork objects
+        names (list[str]): list of names corresponding to the models
+    """
     fig, axes = plt.subplots(2, 2)
     metrics = ["val_acc", "val_loss", "epoch"]
     for i in range(len(models)):
@@ -23,28 +31,40 @@ def plots_optimizers(models: list[NeuralNetwork], names: list[str]) -> None:
             ax=axes[i // 8, ((i // 4)) % 2],
             label=str(models[i].optimizer),
         ).set(title=f"Model {names[i // 4]}")
-
     plt.tight_layout()
     plt.show()
 
 
-def print_metrics(models: list[NeuralNetwork], names: list[str], datas: tuple):
-    for i in range(len(models)):
-        if i % 4 == 0:
-            print(names[i // 4])
-        print(
-            # optimizers[i % 4].name + "->",
-            f"Acc: {models[i].score(datas[0], datas[1])}",
-            f"Loss: {models[i].metrics['val_loss'][-models[i].patience]}",
-            f"Epoch: {models[i].metrics['epoch'][-models[i].patience]}",
-        )
+def print_metrics(models: list[NeuralNetwork], names: list[str], datas: tuple) -> None:
+    """
+    prints the metrics for each model and optimizer combination in a tabular format
+
+    Args:
+        models (list[NeuralNetwork]): list of NeuralNetwork objects
+        names (list[str]): list of names corresponding to the models
+        datas (tuple): tuple containing the training data and labels
+    """
+    headers = ["Optmizer", "Accuracy", "Val Loss", "Best Epoch"]
+    print("----------Results----------")
+    for i in range(0, len(models), 4):
+        data = [
+            [
+                model.optimizer.name,
+                "{:.6f}".format(model.score(datas[0], datas[1])),
+                "{:.6f}".format(model.metrics["val_loss"][-model.patience]),
+                model.metrics["epoch"][-model.patience],
+            ]
+            for model in models[i : i + 4]
+        ]
+        print(f"Model: {names[i // 4]}")
+        print(tabulate(data, headers=headers, tablefmt="pretty"))
+        print()
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="benchmark",
         description="benchmark multiple models",
-        epilog="Text at the bottom of help",
     )
     parser.add_argument("train_path", help="train dataset path", type=str)
     parser.add_argument("valid_path", help="validation dataset path", type=str)
@@ -71,11 +91,13 @@ def main() -> None:
     models.extend([copy.deepcopy(example_models.SUBJECT) for _ in range(4)])
     models.extend([copy.deepcopy(example_models.MIX) for _ in range(4)])
     models.extend([copy.deepcopy(example_models.FULL_RELU) for _ in range(4)])
+
     optimizers = [Optimizer(), SGDMOptimizer(), RMSPropOptimizer(), AdamOptimizer()]
     names = ["relu_sig", "subject", "mix", "full_relu"]
 
     for i in range(len(models)):
         if i % 4 == 0:
+            print(f"Model: {names[i // 4]}")
             print(models[i], end="")
         np.random.seed(4242)
         models[i].fit(
