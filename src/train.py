@@ -43,16 +43,14 @@ def main() -> None:
         epochs=500,
         lr=0.001,
         batch_size=16,
-        optimizer=AdamOptimizer(),
-        # optimizer=SGDMOptimizer(),
-        # optimizer=RMSPropOptimizer(),
+        # optimizer=AdamOptimizer(),
         compute_all=not args.noplot,
     ),
 
+    net.save(args.name if args.name != None else net.optimizer.name)
+
     if not args.noplot:
         net.plot_metrics()
-
-    net.save(args.name if args.name != None else net.optimizer.name)
 
 
 if __name__ == "__main__":

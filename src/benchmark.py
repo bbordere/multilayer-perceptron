@@ -109,7 +109,6 @@ def main() -> None:
             verbose=False,
             compute_all=False,
             optimizer=optimizers[i % 4],
-            # patience=100,
         )
         if i % 4 == 3:
             print("\n\n")
