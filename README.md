@@ -64,7 +64,7 @@ net.fit(
 )
 ```
 
-We can print the model's architecture using the ``print`` keyword:
+We can print the model's architecture using ``print`` keyword:
 ```
 +-----------------+--------------+----------+
 |      Layer      |   Function   |  Shape   |
