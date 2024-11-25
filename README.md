@@ -9,7 +9,7 @@ Before designing a good model, we need to understand the dataset by visualizing 
 
 ![pairplot](https://github.com/user-attachments/assets/72c627d3-8ef3-4978-a2ed-6d254f06eb77)
 </br>
-(This pairplot does not represent the entire dataset because of its size)
+(This pairplot does not represent the entire dataset, for reasons of legibility)
 
 ## Training Part
 We need to divide the dataset into two parts before training: one for training and one for validation, in order to assess the model's performance in a robust way. 
@@ -18,7 +18,7 @@ The training curves are displayed after training to visualize the model's abilit
 ![Learning_curves](https://github.com/user-attachments/assets/7f1639d8-ac58-4321-af41-16a82784a994)
 
 ### Features Available
-To make the implementation modular and robust, there are several things that can be useful:
+To make the implementation modular and robust, there are several things that can be used:
 - Layer Type:
     - Dense Layer
     - Activation Layer
@@ -34,6 +34,52 @@ To make the implementation modular and robust, there are several things that can
     - SGDM (Stochastic Gradient Descent with Momentum)
     - ADAM (Adaptive Moment Estimation)
     - RMSProp (Root Mean Squared Propagation)
+
+This is an example of use in the code:
+
+```python
+# Define the architecture of the model
+net = NeuralNetwork(
+    [
+        DenseLayer(x_train.shape[1], 30),
+        ActivationLayer("relu"),
+        DropoutLayer(0.1),
+        DenseLayer(30, 20),
+        ActivationLayer("tanh"),
+        DenseLayer(20, 10),
+        ActivationLayer("relu"),
+        DenseLayer(10, output_shape),
+        SoftmaxLayer(),
+    ]
+)
+
+# Train the model
+net.fit(
+    train=(x_train, y_train),
+    test=(x_test, y_test),
+    epochs=500,
+    lr=0.001,
+    batch_size=16,
+    optimizer=AdamOptimizer(),
+)
+```
+
+We can print the model's architecture using the ``print`` keyword:
+```
++-----------------+--------------+----------+
+|      Layer      |   Function   |  Shape   |
++-----------------+--------------+----------+
+|   DenseLayer    | Weighted Sum | (10, 30) |
+| ActivationLayer |     Relu     |          |
+|  DropoutLayer   |   Dropout    |          |
+|   DenseLayer    | Weighted Sum | (30, 20) |
+| ActivationLayer |     Tanh     |          |
+|   DenseLayer    | Weighted Sum | (20, 10) |
+| ActivationLayer |     Relu     |          |
+|   DenseLayer    | Weighted Sum | (10, 2)  |
+|  SoftmaxLayer   |   Softmax    |          |
++-----------------+--------------+----------+
+```
 
 ## Predictions Part
 After training a model, we can use it to make predictions on unseen datas. To see the model's performance, we refer to the confusion matrix
